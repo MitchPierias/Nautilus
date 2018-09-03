@@ -1,0 +1,4 @@
+node_modules
+.gitattributes
+config.json
+package-lock.json

@@ -1,0 +1,35 @@
+{
+  "name": "virosa",
+  "version": "0.0.1",
+  "description": "EOS contract and account management",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MitchPierias/Virosa.git"
+  },
+  "keywords": [
+    "EOS",
+    "deployment",
+    "testing"
+  ],
+  "author": "[Mitch Pierias] (github.com/MitchPierias)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MitchPierias/Virosa/issues"
+  },
+  "homepage": "https://github.com/MitchPierias/Virosa#readme",
+  "dependencies": {
+    "chokidar": "^2.0.4",
+    "eosjs": "^15.0.3"
+  },
+  "devDependencies": {
+    "colors": "^1.3.0"
+  }
+}
