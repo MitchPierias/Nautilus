@@ -19,17 +19,21 @@ class Virosa {
 		this.contracts = [];
 		this.creator = config['creator'];
 		this.pubkey = config['public_key'];
-		this.provider = EOSJS({keyProvider:[config['private_key']],
-			expireInSeconds: 60,
-			chainId: config['chain_id']
-		});
+		this.provider = {};
 		this.persistent = true;
 		this.directory = __dirname + config['path'];
 	}
 
-	async scan() {
+	async connect() {
+		this.provider = EOSJS({keyProvider:[config['private_key']],
+			expireInSeconds: 60,
+			chainId: config['chain_id']
+		});
+	}
 
-		let watchDirectory = this.directory;
+	async watch(dir) {
+
+		let watchDirectory = dir || this.directory;
 		let provider = this.provider;
 		let creator = this.creator;
 		/**
@@ -158,5 +162,5 @@ class Virosa {
 }
 
 let virosa = new Virosa(CONFIG);
-//virosa.scan();
-virosa.list();
+virosa.watch(__dirname+'/contracts');
+//virosa.list();
