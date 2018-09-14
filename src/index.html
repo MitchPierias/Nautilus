@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Nautilus</title>
+	<style>
+		body {
+			background-color: #EDEDE5;
+			color:#F8F8F2;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			font-family: "Arial";
+			display:flex;
+			flex-direction:column;
+			justify-content:center;
+			align-items: stretch;
+			align-content: stretch;
+		}
+		header {
+			background-color: #202225;
+			flex: none;
+			display:flex;
+			flex-direction:row;
+			justify-content:flex-start;
+			align-items: stretch;
+		}
+		span.info {
+			flex: 10 2;
+			display:flex;
+			flex-direction:row;
+			justify-content:flex-end;
+			align-items: center;
+		}
+		span.info span {
+			padding: 5px;
+		}
+		#container {
+			display:flex;
+			flex-direction:row;
+			justify-content:space-around;
+			align-items: stretch;
+			align-content: stretch;
+		}
+		aside {
+			flex:3 10;
+			background-color: #2F3136;
+			color: #EDEDE5;
+			height: 100%;
+		}
+		section {
+			flex:5 5;
+			background-color:#36393F;
+		}
+		section.selected {
+			flex:8 2;
+			background-color: #EDEDE5;
+		}
+		h1 {
+			color:#F8F8F2;
+		}
+
+		aside ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+		}
+		aside ul li {
+			background-color: #42464D;
+			padding: 5px;
+			margin: 5px;
+			border-radius: 5px;
+		}
+
+		.card {
+			background-color: #3D4147;
+			border: 1px solid #2F3136;
+			padding: 5px;
+			margin: 5px;
+			border-radius: 5px;
+		}
+		button {
+			border: none;
+			outline: none;
+			padding: 10px 14px;
+			background-color: #3D4147;
+			color: #FFFFFF;
+			font-size: 0.9em;
+			border-radius: 3px;
+		}
+	</style>
+</head>
+<body>
+	<header>
+		<span><h1>Nautilus</h1></span>
+		<span class="info">
+			<span>Network: Local</span>
+			<span>Connection status</span>
+		</span>
+	</header>
+	<div id="container">
+		<aside>
+			<div>
+				<h2>Accounts</h2>
+				<button>Create Account</button>
+			</div>
+			<ul>
+				<li class="card">Account1</li>
+				<li class="card">Account2</li>
+				<li class="card">Account3</li>
+				<li class="card">Account4</li>
+			</ul>
+		</aside>
+		<section>
+			<div>
+				<button>Set contract directory</button>
+			</div>
+			Contracts...
+			<div class="card">Test card</div>
+		</section>
+		<section class="selected">
+			<h2>Selected Contract</h2>
+			<p>State (Deployed/Built/Modified)</p>
+			<button>Build WASM</button>
+			<button>Build ABI</button>
+			<button>Deploy</button>
+		</section>
+	</div>
+</body>
+</html>
