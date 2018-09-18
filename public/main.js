@@ -6,31 +6,45 @@ const isDev = require('electron-is-dev');
   
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win
+let mainWindow;
 
 function createWindow () {
 	// Create the browser window.
-	mainWindow = new BrowserWindow({width: 900, height: 680});
+	mainWindow = new BrowserWindow({width:900,height:680,webPreferences:{webSecurity:!isDev}});
 
 	// and load the index.html of the app.
 	mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
 	// Open the DevTools.
-	if (isDev) win.webContents.openDevTools()
+	mainWindow.webContents.openDevTools()
 
 
 	// Emitted when the window is closed.
-	win.on('closed', () => {
+	mainWindow.on('closed', () => {
 	  // Dereference the window object, usually you would store windows
 	  // in an array if your app supports multi windows, this is the time
 	  // when you should delete the corresponding element.
-	  win = null
+	  mainWindow = null
 	})
 
 	const menu = Menu.buildFromTemplate([
 		{
 			label:'Menu',
 			submenu:[
-				{label:'Set Provider'}
+				{label:'Settings'}
+			]
+		}, {
+			label:'Provider',
+			submenu:[
+				{
+					label:'Set'
+				}
+			]
+		}, {
+			label:'Keys',
+			submenu:[
+				{
+					label:'Create'
+				}
 			]
 		}, {
 			label:'Accounts',
@@ -74,7 +88,7 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
 	// On macOS it's common to re-create a window in the app when the
 	// dock icon is clicked and there are no other windows open.
-	if (win === null) {
+	if (mainWindow === null) {
 	  createWindow()
 	}
 })
