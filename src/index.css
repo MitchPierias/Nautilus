@@ -1,24 +1,97 @@
-body {
-	background-color: #EDEDE5;
-	color:#F8F8F2;
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	font-family: "Arial",sans-serif;
-	display:flex;
-	flex-direction:column;
-	justify-content:center;
-	align-items: stretch;
-	align-content: stretch;
+/** Force App wrapper to bounds **/
+[data-reactroot] {
+	width: 100% !important;
+	height: 100% !important;
+	position: absolute;
 }
 
+body {
+	width:100%;
+	height:100%;
+	background-color:#313131;
+	/**background-color:#f5f4ef;**/
+	color:#474743;
+	padding:0;
+	margin:0;
+	overflow:hidden;
+	font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial;
+	-ms-overflow-style: scrollbar;
+	-webkit-user-select: none;
+	-webkit-app-region:drag;
+}
+/** Button window dragging fix **/
+input[type="submit"],
+input[type="reset"],
+input[type="button"],
+input[type="text"],
+button,
+textarea {
+	-webkit-app-region: no-drag;
+}
+/** Disable Highlighting **/
+h1, h2, h3, h4, h5, h6 {
+	-webkit-user-select: none;
+}
+/**
 button {
 	border: none;
 	outline: none;
-	padding: 10px 14px;
-	background-color: #3D4147;
+	padding: 10px 20px;
+	background-color:transparent;
 	color: #FFFFFF;
-	font-size: 0.9em;
-	border-radius: 3px;
+	font-size: 10px;
+	border-radius: 20px;
+	text-transform: uppercase;
+	border:1px solid rgba(255,255,255,0.1);
+	cursor: pointer;
+}**/
+
+button {
+	color:#B2B3B7;
+	background-color:#383838;
+	border:none;
+	outline:none;
+	padding:10px 16px;
+	margin:2px;
+	font-size:0.9em;
+	border-radius:7px;
+	cursor:pointer;
+	font-weight:500;
+}
+/** RED **/
+button[type='submit'] {
+	background-color:#E85A4F;
+	border:none;
+	color:#f6bfbb;
+}
+
+/** GREY **/
+button[type='submit'] {
+	background-color:#383838;
+	border:none;
+	color:#B2B3B7;
+	font-weight:500;
+}
+
+button[type='reset'] {
+	color:#BABABA;
+	background-color:transparent;
+	border:1px solid #EAE7DC;
+}
+
+button:disabled {
+	background-color:#E1DFD4;
+	color:#c0bca5;
+	cursor:default;
+}
+
+button:disabled {
+	background-color:transparent;
+	border:1px solid transparent;
+	color:#BABABA;
+	cursor:default;
+}
+
+a {
+	color:#E85A4F;
 }

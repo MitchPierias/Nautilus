@@ -1,4 +1,5 @@
 import React from 'react';
+import { getInfo } from '../actions/AccountActions';
 
 export default class Header extends React.Component {
 
@@ -6,15 +7,9 @@ export default class Header extends React.Component {
 		status:0
 	}
 
-	async componentDidMount() {
-		setTimeout(async () => {
-			const info = await this.props.eos.getInfo({}).then(info => {
-				this.setState({ status:2 });
-				console.log(info);
-			}).catch(error => {
-				console.error(error);
-			});
-		}, 3000)
+	componentDidMount() {
+		const info = getInfo();
+		console.log(info);
 	}
 	
 	render() {
@@ -27,20 +22,16 @@ export default class Header extends React.Component {
 			display:"inline-block"
 		}
 
+		const { style } = this.props;
+
 		return (
-			<header style={{backgroundColor:"#202225",flex:"none",display:"flex",flexDirection:"row",justifyContent:"flex-start",alignItems:"stretch",padding:"6px 12px"}}>
-				<span><h1 style={{color:"#F8F8F2"}}>Nautilus</h1></span>
-				<span style={{padding:"5px",flex:"10 2",display:"flex",flexDirection:"column",justifyContent:"space-around",alignItems:"flex-end"}}>
-					<div>
-						<span style={{margin:"0px 5px"}}>Network:</span>
-						<span style={{margin:"0px 5px"}}>Local</span>
-					</div>
-					<div>
-						<span style={{margin:"0px 5px"}}>Status:</span>
-						<span style={{...statusStyle,margin:"0px 5px"}}></span>
-					</div>
-				</span>
-			</header>
+			<aside style={{width:"55px",backgroundColor:"#1B1B1B",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"center",alignContent:"stretch",padding:"2.5px"}}>
+				<span><h1 style={{color:"#ECD1A2",padding:0,margin:0,fontSize:"32px"}}>N</h1></span>
+				<button style={{width:"36px",height:"36px",margin:"2.5px",border:"2px solid #ECD1A2",borderRadius:"50%",outline:"none",backgroundColor:"transparent"}}></button>
+				<button style={{width:"36px",height:"36px",margin:"2.5px",border:"2px solid #ECD1A2",borderRadius:"50%",outline:"none",backgroundColor:"transparent"}}></button>
+				<button style={{width:"36px",height:"36px",margin:"2.5px",border:"2px solid #ECD1A2",borderRadius:"50%",outline:"none",backgroundColor:"transparent"}}></button>
+				<span style={{...statusStyle,margin:"0px 5px"}}></span>
+			</aside>
 		)
 	}
 }

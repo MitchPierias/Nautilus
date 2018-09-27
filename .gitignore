@@ -4,6 +4,8 @@
 /coverage
 # production
 /build
+# contracts
+/contracts
 # misc
 .DS_Store
 .env.local

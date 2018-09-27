@@ -1,46 +1,44 @@
 {
   "name": "nautilus",
   "author": "Mitch Pierias",
-  "description": "EOS Account and Contract Management",
+  "description": "EOS Management",
   "repository": "https://github.com/MitchPierias/Nautilus",
   "version": "0.0.1",
   "private": false,
-  "main": "public/main.js",
+  "main": "main.js",
   "homepage": "./",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "electron": "electron ."
+  },
   "dependencies": {
     "chokidar": "^2.0.4",
-    "electron-is-dev": "^0.3.0",
+    "create-hash": "^1.2.0",
     "eosjs": "^16.0.7",
     "path": "^0.12.7",
-    "react": "^16.5.1",
-    "react-dom": "^16.5.1",
-    "react-scripts": "1.1.5",
-    "url": "^0.11.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "electron-dev": "concurrently \"BROWSER=none yarn start\" \"wait-on http://localhost:3000 && electron ~/Contracts/nautilus\"",
-    "preelectron-pack": "yarn build",
-    "electron-pack": "build --em.main=build/main.js"
+    "react": "^16.5.x",
+    "react-dom": "^16.5.x",
+    "react-lottie": "^1.2.3",
+    "react-motion": "^0.5.2",
+    "react-redux": "^5.0.3",
+    "react-router": "^4.0.0",
+    "react-router-dom": "^4.3.x",
+    "react-spring": "^5.8.0",
+    "redux": "^3.6.0",
+    "redux-thunk": "^2.2.0"
   },
   "devDependencies": {
-    "concurrently": "^4.0.1",
-    "electron": "^2.0.9",
-    "electron-builder": "^20.28.4",
-    "electron-rebuild": "^1.8.2",
-    "wait-on": "^3.0.1"
-  },
-  "build": {
-    "appId": "com.example.nautilus",
-    "files": [
-      "build/**/*",
-      "node_modules/**/*"
-    ],
-    "directories": {
-      "buildResources": "assets"
-    }
+    "babel-core": "^6.24.0",
+    "babel-loader": "^6.4.1",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-es2016": "^6.24.1",
+    "babel-preset-react": "^6.23.0",
+    "babel-preset-stage-1": "^6.22.0",
+    "css-loader": "^1.0.0",
+    "css-modules": "^0.3.0",
+    "electron": "~>1.8.x",
+    "style-loader": "^0.23.0",
+    "webpack": "^2.3.2",
+    "webpack-dev-server": "^2.4.2"
   }
 }

@@ -1,6 +1,4 @@
 import React from 'react';
-import { modules } from 'eosjs';
-const { ecc } = modules;
 
 const listStyle = {
 	listStyle:"none",
@@ -35,27 +33,6 @@ export default class Accounts extends React.Component {
 	}
 
 	/**
-	 * Generate Key Pair
-	 * @desc Generates unique private and public keys
-	 * @author [Mitch Pierias](github.com/MitchPierias)
-	 * @param count <Number> Number of keys to generate
-	 * @param callback <Function> Callback function
-	 * @version 0.1.0
-	 * @return seeds <Array> Array of generated seeds
-	 */
-	async generateKeyPair(event) {
-		event.preventDefault();
-		let pairs = this.state.pairs;
-		const seed = await ecc.randomKey();
-		const keyPair = {
-			private:seed,
-			public:ecc.privateToPublic(seed)
-		}
-		pairs.push(keyPair);
-		this.setState({ pairs, ownerKey:keyPair.public, activeKey:keyPair.public });
-	}
-
-	/**
 	 * Name Field Changed
 	 * @desc Fires when the account `name` input value changes
 	 * @author [Mitch Pierias](github.com/MitchPierias)
@@ -69,46 +46,37 @@ export default class Accounts extends React.Component {
 		this.setState({ name });
 	}
 
-	/**
-	 * Create Account
-	 * @desc Creates a new account
-	 * @author [Mitch Pierias](github.com/MitchPierias)
-	 * @param event <onclick> Button onclick event
-	 * @version 1.0.0
-	 * @return
-	 */
-	async createAccount(event) {
-		event.preventDefault();
-		const { creator, name, ownerKey, activeKey } = this.state;
+	createAccount() {
 
-		if (!name) return alert("Missing account name");
-		if (!ownerKey) return alert("Missing owner key");
-		if (!activeKey) return alert("Missing active key");
+	}
 
-		const result = await this.props.eos.newaccount({
-			creator: creator,
-			name: name,
-			owner: ownerKey,
-			active: activeKey
-		}).then(receipt => {
-			console.log("Account '"+name+"' created");
-			let { accounts } = this.state;
-			accounts.push({name,ownerKey,activeKey,creator});
-			this.setState({ accounts });
-		}).catch(error => {
-			console.log("Account '"+name+"' already exists");
-			let { accounts } = this.state;
-			accounts.push({name,ownerKey,activeKey,creator});
-			this.setState({ accounts });
-		});
+	generateKeyPair() {
+
 	}
 	
 	render() {
 
+		const menuStyle = {
+			listStyle:"none",
+			textAlign:"right",
+			padding:"8px 26px"
+		}
+
+		const menuItemStyle = {
+			fontSize:"9px",
+			fontWeight:500,
+			textTransform:"uppercase",
+			padding:"26px 0px 10px 0px",
+			borderWidth:0,
+			borderStyle:"solid",
+			borderColor:"rgba(255,255,255,0.2)",
+			borderBottomWidth:"2px"
+		}
+
 		const accountList = this.state.accounts.map((account, idx) => (<li key={idx} style={{...listItemStyle,...cardStyle}}>{account.name}</li>))
 		const keyList = this.state.pairs.map((key, idx) => (<option key={idx} value={key.public}>{key.public}</option>))
 		return (
-			<aside style={{flex:"3 10",backgroundColor:"#2F3136",color:"#EDEDE5",height:"100%"}}>
+			<aside style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%"}}>
 				<div>
 					<h2>Accounts</h2>
 					<span>
