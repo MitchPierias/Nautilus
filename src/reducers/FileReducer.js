@@ -1,69 +1,54 @@
 // Modules
 import _ from 'lodash';
-import createHash from 'create-hash';
 // Types
 import {
+	MERGE_FILE,
 	ADD_FILES,
 	UPDATE_FILE,
 	REMOVE_FILE,
-	REMOVE_ALL_FILES
-} from '../actions/types';
-
-import {
-	COMPILED_FILE
+	REMOVE_ALL_FILES,
+	COMPILED_FILE,
+	DEPLOYED_FILE
 } from '../actions/FileTypes';
 // Globals
-const INITIAL_STATE = {
-	'926A66B24E': {
-		id:'926A66B24E',
-		contract:'game',
-		type:'contract',
-		path:'/Users/mitch/Contracts/Nautilus/contracts/',
-		file:'game.cpp',
-		dependencies:['3556EE3097','0C26A9DD64'],
-		modified:true,
-		version:'version.hash',
-		deployed:'version.hash'
-	},
-	'3556EE3097': {
-		id:'3556EE3097',
-		contract:'game',
-		type:'wasm',
-		path:'/Users/mitch/Contracts/Nautilus/contracts/',
-		file:'game.wasm',
-		source:'game.cpp',
-		dependencies:[],
-		modified:true,
-		version:'version.hash',
-		deployed:'version.hash'
-	},
-	'0C26A9DD64': {
-		id:'0C26A9DD64',
-		contract:'game',
-		type:'abi',
-		path:'/Users/mitch/Contracts/Nautilus/contracts/',
-		file:'game.abi',
-		source:'game.cpp',
-		dependencies:[],
-		modified:true,
-		version:'version.hash',
-		deployed:'version.hash'
-	}
-};
-const KEY_ARGUMENT_ID = 'id';
+const INITIAL_STATE = {};
+const ARGUMENT_KEY = 'uid';
+const FILE_SCHEMA = {
+	uid:'',
+	name:'',
+	extension:'',
+	path:'',
+	file:'',
+	source:'',
+	modified:false,
+	contract:'',
+	dependencies:[],
+	version:'',
+	deployed:''
+}
 
 export default (state = INITIAL_STATE, action) => {
 	switch (action.type) {
 		case UPDATE_FILE:
-			return { ...state, [action.payload[KEY_ARGUMENT_ID]]: action.payload };
+			return { ...state, [action.payload[ARGUMENT_KEY]]: action.payload };
+		case MERGE_FILE:
+			const file = action.payload;
+			const existing = state[file[ARGUMENT_KEY]] || FILE_SCHEMA;
+			state= { ...state, [action.payload[ARGUMENT_KEY]]: {...existing,...file} };
+			return state;
 		case ADD_FILES:
-			return { ...state, ..._.mapKeys(action.payload, KEY_ARGUMENT_ID)};
+			return { ...state, ..._.mapKeys(action.payload, ARGUMENT_KEY)};
 		case REMOVE_FILE:
-			return _.omit(state, action.payload[KEY_ARGUMENT_ID]);
+			return _.omit(state, action.payload[ARGUMENT_KEY]);
 		case REMOVE_ALL_FILES:
 			return INITIAL_STATE;
 		case COMPILED_FILE:
-			return { ...state, [action.payload[KEY_ARGUMENT_ID]]:action.payload }
+			//console.log("Compiled", action.payload);
+			//return { ...state, [action.payload[ARGUMENT_KEY]]:action.payload }
+		case DEPLOYED_FILE:
+			const file2 = state[action.payload];
+			if (file2) file2.deployed = +new Date;
+			return { ...state, [action.payload]:file2 };
 		default:
 			return state;
 	}

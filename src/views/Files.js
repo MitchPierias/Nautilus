@@ -3,54 +3,50 @@ import { connect } from 'react-redux';
 // Actions
 import { watchDirectory } from '../actions/FileActions';
 
-const cardStyle = {
-	backgroundColor:"transparent",
-	border:"none",
-	color:"#BABABA",
-	padding:"6px 10px",
-	borderBottom:"2px solid #313131",
-	display:"flex",
-	flexDirection:"row",
-	justifyContent:"flex-start",
-	alignItems:"center",
-	alignContent:"stretch"
-}
-
-function mapStateToProps({ contracts }) {
-	return { contracts };
+function mapStateToProps({ files }) {
+	return { files };
 }
 
 class Files extends React.Component {
 
+	state = {
+		actions:{}
+	}
+
 	componentWillMount() {
-		
+		//this.props.watchDirectory();
 	}
 
 	didSelectDirectory(event) {
 		event.preventDefault();
-		watchDirectory();
+		this.props.watchDirectory();
 	}
 	
 	render() {
 
 		const { style } = this.props;
-
+		const bgColor = "#16FFBD";
+		
 		return (
-			<section style={{flex:"3 5",...style}}>
+			<section style={{flex:"8 2",backgroundColor:"#252525",color:"#BABABA",padding:"12px",...style,overscrollX:"hidden",overscrollY:"auto"}}>
 				<div style={{width:"95%",padding:"2%"}}>
-					<button onClick={this.didSelectDirectory.bind(this)} style={{width:"100%"}}>Select directory</button>
+					<button onClick={this.didSelectDirectory.bind(this)} style={{width:"100%"}}>Select working directory</button>
 				</div>
-				{Object.values(this.props.contracts).map((contract, idx) => {
-					return (
-						<div key={idx} style={cardStyle}>
-							<span style={{width:"8px",height:"8px",margin:"5px",backgroundColor:"#ECD1A2",display:"inline-block",borderRadius:"50%"}}></span>
-							<span style={{color:"#747579",fontWeight:600,margin:"5px"}}>{contract.code}</span>
-						</div>
-					)
-				})}
+				<section style={{height:"100%",overflowX:"hidden",overflowY:"auto"}}>
+					{Object.values(this.props.files).map(( file, idx ) => {
+						return (
+							<div key={idx} style={{border:"1px solid #383838",borderRadius:"7px",margin:"7px",padding:"7px"}}>
+								<div style={{margin:"7px"}}>{file.uid} : {file.name}.{file.extension}</div>
+								<div style={{margin:"7px"}}>{file.path}</div>
+								<div style={{margin:"7px"}}>{file.modified||'Not modified'}</div>
+								<div style={{margin:"7px"}}>{file.version||'No version hash'}</div>
+							</div>
+						)
+					})}
+				</section>
 			</section>
 		)
 	}
 }
 
-export default connect(mapStateToProps)(Files);
+export default connect(mapStateToProps, {watchDirectory})(Files);
