@@ -19,6 +19,10 @@ body {
 	-webkit-user-select: none;
 	-webkit-app-region:drag;
 }
+
+.full {
+	height: 100% !important;
+}
 /** Button window dragging fix **/
 input[type="submit"],
 input[type="reset"],
@@ -45,6 +49,17 @@ button {
 	border:1px solid rgba(255,255,255,0.1);
 	cursor: pointer;
 }**/
+
+input {
+	color:#B2B3B7;
+	background-color: transparent;
+	border:1px solid #383838;
+	font-size:0.9em;
+	margin:2px;
+	padding:9px;
+	border-radius:7px;
+	outline: none;
+}
 
 button {
 	color:#B2B3B7;
@@ -90,6 +105,10 @@ button:disabled {
 	border:1px solid transparent;
 	color:#BABABA;
 	cursor:default;
+}
+
+h2 {
+	padding-left: 7px;
 }
 
 a {

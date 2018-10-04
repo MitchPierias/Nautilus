@@ -3,14 +3,15 @@ import { connect } from 'react-redux';
 import EOS from 'eosjs';
 import fs from 'fs';
 // Actions
-import { watchDirectory, compileFile, deployFile } from '../actions/FileActions';
+import { loadAccounts } from '../actions/AccountActions';
+import { compileFile, deployFile } from '../actions/FileActions';
 
-const deployedColor = '#16FFBD';
-const compiledColor = 'yellow';
-const defaultColor = 'grey';
+const deployedColor = '#00E676';
+const compiledColor = '#FF9100';
+const defaultColor = '#9E9E9E';
 
-function mapStateToProps({ files }) {
-	return { files };
+function mapStateToProps({ files, accounts }) {
+	return { files, accounts };
 }
 
 class ContractDetail extends React.Component {
@@ -19,13 +20,18 @@ class ContractDetail extends React.Component {
 		actions:{}
 	}
 
+	static defaultProps = {
+		contract:false
+	}
+
 	componentWillMount() {
-		this.props.watchDirectory('/Users/mitch/Contracts/Nautilus/contracts');
+		this.props.loadAccounts();
 	}
 
 	didSelectCompileFile(type, event) {
 		event.preventDefault();
-		console.log(this.props.files[this.props.contract]);
+		if (!this.props.contract) return;
+		console.log(this.props.contract,this.props.files, this.props.files[this.props.contract]);
 		this.props.compileFile(this.props.files[this.props.contract],type);
 	}
 
@@ -65,20 +71,27 @@ class ContractDetail extends React.Component {
 		
 		return (
 			<section style={{flex:"8 2",backgroundColor:"#252525",color:"#BABABA",padding:"12px",...this.props.style}}>
-				<h2 style={{color:"#EDEDE5",textTransform:"uppercase"}}>{this.props.code} Contract</h2>
+				<div style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"center",alignContent:"stretch",padding:0,margin:0}}>
+					<h2 style={{color:"#EDEDE5",textTransform:"uppercase"}}>{this.props.code} Contract</h2>
+					<select>
+						{Object.values(this.props.accounts).map((account, idx) => {
+							return <option key={account.uuid}>{account.name}</option>
+						})}
+					</select>
+				</div>
 				<div>
 					<button type="submit" disabled={contract.modified}>Compile</button>
 					<button type="submit" disabled={!(wasm.file && abi.file)} onClick={this.didSelectDeployFile.bind(this)}>Deploy</button>
 				</div>
 				<section style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
 					<span style={{flex:"3 3",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"center",alignContent:"center",padding:"5px",margin:0}}>
-						<span style={{flex:"none",backgroundColor:((wasm.deployed)?deployedColor:((wasm.file)?compiledColor:defaultColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
+						<span style={{flex:"none",backgroundColor:((wasm.deployed && !wasm.modified)?deployedColor:((wasm.file)?compiledColor:defaultColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
 						<span style={{flex:"3 2"}}>WASM</span>
 						<span style={{flex:"7 3"}}>{wasm.file}</span>
 						<button style={{flex:"3 5"}} onClick={this.didSelectCompileFile.bind(this,'wasm')} disabled={wasm.file}>{(wasm.file)?"Compiled":"Compile WASM"}</button>
 					</span>
 					<span style={{flex:"3 3",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"flex-start",alignContent:"center",padding:"5px",margin:0}}>
-						<span style={{flex:"none",backgroundColor:((abi.deployed)?deployedColor:((abi.file)?compiledColor:defaultColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
+						<span style={{flex:"none",backgroundColor:((abi.deployed && !abi.modified)?deployedColor:((abi.file)?compiledColor:defaultColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
 						<span style={{flex:"3 2"}}>ABI</span>
 						<span style={{flex:"7 3"}}>{abi.file}</span>
 						<button style={{flex:"3 5"}} onClick={this.didSelectCompileFile.bind(this,'abi')} disabled={abi.file}>{(abi.file)?"Compiled":"Compile ABI"}</button>
@@ -101,4 +114,4 @@ class ContractDetail extends React.Component {
 	}
 }
 
-export default connect(mapStateToProps, {watchDirectory,compileFile,deployFile})(ContractDetail);
+export default connect(mapStateToProps, {compileFile,deployFile,loadAccounts})(ContractDetail);

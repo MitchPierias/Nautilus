@@ -6,13 +6,13 @@ import store from './reducers/index';
 // CSS
 import './index.css';
 // Components
-import Navigation from './views/Navigation.js';
+import Navigation from './components/Navigation.js';
 import Routes from './views';
 
 const App = (
 	<Provider store={store}>
 		<Router basename="/">
-			<section style={{height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-around",alignItems:"stretch",alignContent:"stretch"}}>
+			<section className="full" style={{height:"100%",width:"100%",display:"flex",flexDirection:"row",justifyContent:"flex-start",alignItems:"stretch",alignContent:"stretch",border:"1px solid red"}}>
 				<Route component={Navigation}/>
 				<Routes/>
 			</section>

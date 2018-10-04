@@ -1,15 +1,10 @@
-import EOS, { modules } from 'eosjs';
-const { ecc } = modules;
-
-const eos = EOS({
-	chainId: "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
-	keyProvider: ["5JgyBhAvhfhH4Xo474EV1Zjm9uhEGjWXr62tj17aYUKR36ocWzY","5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","5J5t5Xp9Ug4rwBLRZNLKyXCrAVBHAMWAXeZTgdHFW86BC3qCKbM","5Kay6rDnV1hjLQUwBeEPrfxMwYdAP3gwhLSkYmby7vd7jxGrfx8"],
-	httpEndpoint: 'http://127.0.0.1:8888',
-	expireInSeconds: 60,
-	broadcast: true,
-	verbose: false,
-	sign: true
-});
+// Modules
+import { ipcRenderer } from 'electron';
+// Types
+import {
+	ADD_ACCOUNT,
+	REMOVE_ALL_ACCOUNTS
+} from './AccountTypes';
 
 /**
  * Create Account
@@ -19,55 +14,28 @@ const eos = EOS({
  * @version 1.0.0
  * @return
  */
-export const createAccount = event => dispatch => {
-	event.preventDefault();
-	const { creator, name, ownerKey, activeKey } = this.state;
+export const createAccount = name => dispatch => {
 
-	if (!name) return alert("Missing account name");
-	if (!ownerKey) return alert("Missing owner key");
-	if (!activeKey) return alert("Missing active key");
+	ipcRenderer.send('account:create', name);
 
-	eos.newaccount({
-		creator: creator,
-		name: name,
-		owner: ownerKey,
-		active: activeKey
-	}).then(receipt => {
-		console.log("Account '"+name+"' created");
-		let { accounts } = this.state;
-		accounts.push({name,ownerKey,activeKey,creator});
-		this.setState({ accounts });
-	}).catch(error => {
-		console.log("Account '"+name+"' already exists");
+	ipcRenderer.on('account:created', (event, name) => {
+		console.log("Account",name,"created");
+		dispatch({ type:ADD_ACCOUNT,payload:{uuid:name,name,code:''} });
+	});
+
+	ipcRenderer.on('account:exists', (event, name) => {
+		console.log("Account",name,"exits");
+		dispatch({ type:ADD_ACCOUNT,payload:{uuid:name,name,code:''} });
 	});
 }
 
-/**
- * Generate Key Pair
- * @desc Generates unique private and public keys
- * @author [Mitch Pierias](github.com/MitchPierias)
- * @param count <Number> Number of keys to generate
- * @param callback <Function> Callback function
- * @version 0.1.0
- * @return seeds <Array> Array of generated seeds
- */
-export const generateKeyPair = event => dispatch => {
-	event.preventDefault();
-	let pairs = this.state.pairs;
-	ecc.randomKey();
-	const keyPair = {
-		private:seed,
-		public:ecc.privateToPublic(seed)
-	}
-	pairs.push(keyPair);
-	this.setState({ pairs, ownerKey:keyPair.public, activeKey:keyPair.public });
-}
+export const loadAccounts = () => dispatch => {
 
-export const getInfo = () => {
-	eos.getInfo({}).then(info => {
-		return info;
-		console.log(info);
-	}).catch(error => {
-		console.error(error);
+	ipcRenderer.send('account:load', 'EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F');
+
+	ipcRenderer.on('accounts:loaded', (event, accounts) => {
+		accounts.forEach(name => {
+			dispatch({type:ADD_ACCOUNT,payload:{uuid:name,name,code:''}});
+		});
 	});
 }

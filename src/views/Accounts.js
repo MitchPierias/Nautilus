@@ -1,35 +1,48 @@
 import React from 'react';
-
-const listStyle = {
-	listStyle:"none",
-	padding:0,
-	margin:0
-}
-
-const listItemStyle = {
-	backgroundColor:"#42464D",
-	padding:"5px",
-	margin:"5px",
-	borderRadius:"5px"
-}
+import { object } from 'prop-types';
+import { connect } from 'react-redux';
+import EOS, { modules } from 'eosjs';
+const { ecc } = modules;
+// Components
+import AccountDetail from '../components/AccountDetail';
+// Actions
+import { loadAccounts, createAccount } from '../actions/AccountActions';
 
 const cardStyle = {
-	backgroundColor:"#3D4147",
-	border:"1px solid #2F3136",
-	padding:"5px",
-	margin:"5px",
-	borderRadius:"5px"
+	backgroundColor:"transparent",
+	border:"none",
+	color:"#BABABA",
+	padding:"10px",
+	borderBottom:"2px solid #313131",
+	display:"flex",
+	flexDirection:"row",
+	justifyContent:"flex-start",
+	alignItems:"center",
+	alignContent:"stretch",
+	cursor:"pointer"
 }
 
-export default class Accounts extends React.Component {
+function mapStateToProps({ accounts }) {
+	return { accounts };
+}
+
+class Accounts extends React.Component {
 
 	state = {
-		pairs:[],
 		name:'',
-		ownerKey:'',
-		activeKey:'',
-		creator:'eosio',
-		accounts:[]
+		selected:false
+	}
+
+	static defaultProps = {
+		accounts:{}
+	}
+
+	static propTypes = {
+		accounts:object
+	}
+
+	componentWillMount() {
+		this.props.loadAccounts();
 	}
 
 	/**
@@ -41,17 +54,23 @@ export default class Accounts extends React.Component {
 	 * @return
 	 */
 	didChangeNameField(event) {
-		const elem = event.target;
-		const name = elem.value;
+		const name = event.target.value;
 		this.setState({ name });
 	}
 
-	createAccount() {
-
+	didSelectCreateAccount(event) {
+		event.preventDefault();
+		const { name } = this.state;
+		if (name && 'string' === typeof name && name.length > 0) {
+			this.props.createAccount(name);
+		} else {
+			alert("A valid name is required");
+		}
 	}
 
-	generateKeyPair() {
-
+	didSelectAccount(code) {
+		if (code === this.state.selected) code = false;
+		this.setState({ selected:code });
 	}
 	
 	render() {
@@ -73,25 +92,28 @@ export default class Accounts extends React.Component {
 			borderBottomWidth:"2px"
 		}
 
-		const accountList = this.state.accounts.map((account, idx) => (<li key={idx} style={{...listItemStyle,...cardStyle}}>{account.name}</li>))
-		const keyList = this.state.pairs.map((key, idx) => (<option key={idx} value={key.public}>{key.public}</option>))
+		const accountList = Object.values(this.props.accounts).map((account, idx) => 
+			<div key={idx} style={cardStyle} onClick={this.didSelectAccount.bind(this, account.uuid)}>
+				<span>{account.name}</span>
+			</div>
+		);
+
 		return (
-			<aside style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%"}}>
-				<div>
+			<div style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
+				<aside style={{flex:"6 10",borderRight:"1px solid #313131"}}>
 					<h2>Accounts</h2>
-					<span>
-						<input name="name" type="text" placeholder="Account name" onChange={this.didChangeNameField.bind(this)}/>
-						<button onClick={this.createAccount.bind(this)}>Create Account</button>
+					<span style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
+						<input name="name" type="text" placeholder="Account name" onChange={this.didChangeNameField.bind(this)} style={{flex:"6 4"}}/>
+						<button onClick={this.didSelectCreateAccount.bind(this)} style={{flex:"none"}}>Create Account</button>
 					</span>
-				</div>
-				<ul style={listStyle}>
-					{accountList}
-				</ul>
-				<select>
-					{keyList}
-				</select>
-				<button onClick={this.generateKeyPair.bind(this)}>Generate Keys</button>
-			</aside>
+					<div>
+						{accountList}
+					</div>
+				</aside>
+				{(this.state.selected)?<AccountDetail code={this.state.selected}/>:null}
+			</div>
 		)
 	}
 }
+
+export default connect(mapStateToProps, {loadAccounts,createAccount})(Accounts);

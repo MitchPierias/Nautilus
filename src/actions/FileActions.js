@@ -8,7 +8,8 @@ import {
 	FILE_ADDED,
 	REMOVE_FILE,
 	COMPILED_FILE,
-	DEPLOYED_FILE
+	DEPLOYED_FILE,
+	MODIFY_FILE
 } from './FileTypes';
 
 import {
@@ -17,6 +18,7 @@ import {
 } from './ContractTypes';
 
 const HASH_LENGTH = 6;
+let watching = false;
 
 /**
  * Watch Directory
@@ -27,6 +29,9 @@ const HASH_LENGTH = 6;
  * @return
  */
 export const watchDirectory = directory => dispatch => {
+
+	if (watching) return;
+	watching = true;
 
 	if (!directory && 'string' === typeof directory) {
 		dialog.showOpenDialog({
@@ -61,8 +66,13 @@ export const watchDirectory = directory => dispatch => {
 		}});
 	});
 
+	ipcRenderer.on('file:changed', (event, path) => {
+		let uid = generateUid(path);
+		dispatch({ type:MODIFY_FILE,payload:uid});
+	});
+
 	ipcRenderer.on('file:removed', (event, path) => {
-		const uid = generateUid(path);
+		let uid = generateUid(path);
 		dispatch({ type:REMOVE_FILE,payload:uid });
 	});
 }

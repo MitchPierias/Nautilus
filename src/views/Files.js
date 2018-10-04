@@ -19,7 +19,7 @@ class Files extends React.Component {
 
 	didSelectDirectory(event) {
 		event.preventDefault();
-		this.props.watchDirectory();
+		//this.props.watchDirectory();
 	}
 	
 	render() {

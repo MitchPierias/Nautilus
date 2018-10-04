@@ -6,6 +6,12 @@ const fs = require('fs');
 const binaryen = require('binaryen');
 const colors = require('colors');
 const EOS = require('eosjs');
+const ElectronStore = require('electron-store');
+
+const store = new ElectronStore({
+	name:'cache',
+	defaults:{}
+});
 
 const eos = EOS({
 	chainId: "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -171,22 +177,62 @@ ipcMain.on('directory:watch', (event, directory) => {
 	});
 
 	function onWatcherReady() {
-		console.info('Chokidar is watching directory.',directory);
+		console.info(colors.white('Chokidar is watching directory: '+directory));
 	}
 	// Declare the listeners of the watcher
 	watcher.on('add', function(path, { size, mtimeMS, birthtimeMs }) {
 		console.log(colors.yellow("Added file"),colors.grey(path));
+		store.set(path, { path, size, created:birthtimeMs, modified:mtimeMS });
 		mainWindow.webContents.send('file:added', { path, size, created:birthtimeMs, modified:mtimeMS });
 	}).on('addDir', function(path) {
-		console.log('Directory', path, 'has been added');
+		//console.log('Directory', path, 'has been added');
 	}).on('change', function(path) {
+		mainWindow.webContents.send('file:changed', path);
 		console.log(colors.cyan("Updated file"),colors.grey(path));
 	}).on('unlink', function(path) {
 		mainWindow.webContents.send('file:removed', path);
 		console.log(colors.red("Removed file"),colors.grey(path));
 	}).on('unlinkDir', function(path) {
-		console.log(colors.red("Removed directory"),colors.grey(path));
+		//console.log(colors.red("Removed directory"),colors.grey(path));
 	}).on('error', function(error) {
-		console.log('Error happened', error);
+		//console.log('Error happened', error);
 	}).on('ready', onWatcherReady);
+});
+
+ipcMain.on('account:create', (event, name) => {
+
+	const creator = "eosio";
+	const ownerKey = "EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F";
+	const activeKey = "EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F";
+
+	eos.newaccount({
+		creator: creator,
+		name: name,
+		owner: ownerKey,
+		active: activeKey
+	}, (error, receipt) => {
+		if (error) {
+			mainWindow.webContents.send('account:exists', name);
+		} else {
+			mainWindow.webContents.send('account:created', name);
+		}
+	});
+});
+
+ipcMain.on('account:load', (event, key) => {
+	key = "EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F";
+	eos.getKeyAccounts(key, (err, { account_names }) => {
+		if (err) {
+			console.log(colors.red("ERROR"),colors.grey(err));
+		} else {
+			mainWindow.webContents.send('accounts:loaded', account_names);
+		}
+	});
+});
+
+ipcMain.on('account:code', (event, name) => {
+	eos.getCode(name, (error, code_hash) => {
+		console.log(colors.cyan("Code"),code_hash);
+		console.log(colors.red("ERROR"),colors.yellow(error));
+	});
 });

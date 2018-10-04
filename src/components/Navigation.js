@@ -1,5 +1,4 @@
 import React from 'react';
-import { getInfo } from '../actions/AccountActions';
 
 export default class Navigation extends React.Component {
 
@@ -7,9 +6,9 @@ export default class Navigation extends React.Component {
 		status:0
 	}
 
-	componentDidMount() {
-		const info = getInfo();
-		console.log(info);
+	didSelectKeys(event) {
+		event.preventDefault();
+		this.props.history.push('/keys');
 	}
 
 	didSelectAccounts(event) {
@@ -30,7 +29,7 @@ export default class Navigation extends React.Component {
 	render() {
 
 		const statusStyle = {
-			backgroundColor:(this.state.status>0)?'#00E676':'#FF1744',
+			backgroundColor:(this.state.status>0)?'#00E676':'#FF5252',
 			borderRadius:"50%",
 			width:"10px",
 			height:"10px",
@@ -52,13 +51,14 @@ export default class Navigation extends React.Component {
 		const { style } = this.props;
 
 		return (
-			<aside style={{width:"55px",backgroundColor:"#1B1B1B",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"center",alignContent:"stretch",padding:"2.5px"}}>
-				<span><h1 style={{color:"#ECD1A2",padding:0,margin:0,fontSize:"32px"}}>N</h1></span>
+			<div style={{flex:"none",width:"55px",backgroundColor:"#1B1B1B",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"center",alignContent:"stretch",padding:"2.5px"}}>
+				<img style={{width:"40px",height:"40px",padding:0,margin:"5px"}} src="./logo.png"/>
+				<button onClick={this.didSelectKeys.bind(this)} style={buttonStyle}>K</button>
 				<button onClick={this.didSelectAccounts.bind(this)} style={buttonStyle}>A</button>
 				<button onClick={this.didSelectFiles.bind(this)} style={buttonStyle}>F</button>
 				<button onClick={this.didSelectContracts.bind(this)} style={buttonStyle}>C</button>
 				<span style={{...statusStyle,margin:"0px 5px"}}></span>
-			</aside>
+			</div>
 		)
 	}
 }

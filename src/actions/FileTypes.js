@@ -14,3 +14,5 @@ export const UPDATE_FILE = 'UPDATE_FILE';
 export const REMOVE_FILE = 'REMOVE_FILE';
 /** Remove All Files **/
 export const REMOVE_ALL_FILES = 'REMOVE_ALL_FILES';
+/** Modified File **/
+export const MODIFY_FILE = 'MODIFY_FILE';

@@ -3,6 +3,8 @@ import { connect } from 'react-redux';
 import { BrowserRouter as Router } from 'react-router-dom';
 // Components
 import ContractDetail from '../components/ContractDetail';
+// Actions
+import { watchDirectory } from '../actions/FileActions';
 
 const cardStyle = {
 	backgroundColor:"transparent",
@@ -29,7 +31,8 @@ class Contracts extends React.Component {
 	}
 
 	componentWillMount() {
-		
+		// Everytime we view or reload this component, we start a new observer
+		this.props.watchDirectory('/Users/mitch/Contracts/Nautilus/contracts');
 	}
 
 	didSelectContract({ code }) {
@@ -43,7 +46,7 @@ class Contracts extends React.Component {
 		const selected = this.props.contracts[code] || {};
 
 		return (
-			<section style={{flex:"3 5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-around",alignItems:"stretch",alignContent:"stretch"}}>
+			<section style={{flex:"10 5",display:"flex",flexDirection:"row",justifyContent:"space-around",alignItems:"stretch",alignContent:"stretch"}}>
 				<section style={{backgroundColor:"#252525",flex:"3 5",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"stretch",alignContent:"flex-start",border:"none",borderRight:"1px solid #313131"}}>
 					<h2>Contracts</h2>
 					{Object.values(this.props.contracts).map((contract, idx) => {
@@ -62,4 +65,4 @@ class Contracts extends React.Component {
 	}
 }
 
-export default connect(mapStateToProps)(Contracts);
+export default connect(mapStateToProps, {watchDirectory})(Contracts);
