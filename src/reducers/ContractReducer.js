@@ -3,6 +3,7 @@ import _ from 'lodash';
 // Types
 import {
 	ADD_CONTRACT,
+	ADD_CONTRACTS,
 	REFRESH_CONTRACT,
 	DEPLOYED_CONTRACT
 } from '../actions/ContractTypes';
@@ -11,47 +12,17 @@ import {
 	COMPILED_FILE
 } from '../actions/FileTypes';
 // Globals
-const INITIAL_STATE = {
-	'game': {
-		code:'game',
-		path:'/Users/mitch/Contracts/Nautilus/contracts/',
-		contract:'540C8F',
-		entry:'game.cpp',
-		wasm:'74B3D6',
-		abi:'FFE31A',
-		modified:true,
-		compiled:1538049274593,
-		deployed:false
-	},
-	'members': {
-		code:'members',
-		path:'/Users/mitch/Contracts/Nautilus/contracts/',
-		contract:'D3E168',
-		entry:'members.cpp',
-		wasm:false,
-		abi:false,
-		modified:true,
-		compiled:1538049341144,
-		deployed:false
-	},
-	'syndicate': {
-		code:'syndicate',
-		path:'/Users/mitch/Contracts/Nautilus/contracts/',
-		contract:'665BE6',
-		entry:'syndicate.cpp',
-		wasm:false,
-		abi:false,
-		modified:true,
-		compiled:1538049362882,
-		deployed:false
-	}
-}
+const INITIAL_STATE = {}
 
 const KEY_ARGUMENT_ID = 'code';
 
 export default (state = INITIAL_STATE, action) => {
 	switch (action.type) {
 		case ADD_CONTRACT:
+			const defaultData = {path:'',contract:false,entry:false,wasm:false,abi:false,modified:true,deployed:false,compiled:false};
+			const data = {defaultData,...action.payload}
+			return { ...state, [action.payload.code]:data }
+		case ADD_CONTRACTS:
 			return { ...state, ..._.mapKeys(action.payload, KEY_ARGUMENT_ID)};
 		case REFRESH_CONTRACT:
 			const source = state[action.payload.code];

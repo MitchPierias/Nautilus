@@ -1,7 +1,13 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { remote } from 'electron';
+const { dialog } = remote;
 // Actions
-import { watchDirectory } from '../actions/FileActions';
+import { watchDirectory, loadFiles } from '../actions/FileActions';
+// Constants
+const deployedColor = '#00E676';
+const compiledColor = '#FF9100';
+const defaultColor = '#9E9E9E';
 
 function mapStateToProps({ files }) {
 	return { files };
@@ -14,12 +20,17 @@ class Files extends React.Component {
 	}
 
 	componentWillMount() {
-		//this.props.watchDirectory();
+		this.props.loadFiles()
 	}
 
 	didSelectDirectory(event) {
 		event.preventDefault();
-		//this.props.watchDirectory();
+		dialog.showOpenDialog({
+			properties: ['openDirectory']
+		}, (fileNames) => {
+			if (!fileNames || fileNames.length <= 0) return;
+			this.props.watchDirectory(fileNames[0]);
+		});
 	}
 	
 	render() {
@@ -36,10 +47,9 @@ class Files extends React.Component {
 					{Object.values(this.props.files).map(( file, idx ) => {
 						return (
 							<div key={idx} style={{border:"1px solid #383838",borderRadius:"7px",margin:"7px",padding:"7px"}}>
-								<div style={{margin:"7px"}}>{file.uid} : {file.name}.{file.extension}</div>
-								<div style={{margin:"7px"}}>{file.path}</div>
-								<div style={{margin:"7px"}}>{file.modified||'Not modified'}</div>
-								<div style={{margin:"7px"}}>{file.version||'No version hash'}</div>
+								<span style={{flex:"none",backgroundColor:((file.deployed)?deployedColor:((file.modified)?defaultColor:compiledColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
+								<span style={{padding:"7px"}}>{file.uid}</span>
+								<span style={{padding:"7px"}}>{file.name}.{file.extension}</span>
 							</div>
 						)
 					})}
@@ -49,4 +59,4 @@ class Files extends React.Component {
 	}
 }
 
-export default connect(mapStateToProps, {watchDirectory})(Files);
+export default connect(mapStateToProps, {watchDirectory,loadFiles})(Files);

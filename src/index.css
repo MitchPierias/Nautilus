@@ -2,12 +2,12 @@
 [data-reactroot] {
 	width: 100% !important;
 	height: 100% !important;
-	position: absolute;
+	position: relative;
 }
 
 body {
-	width:100%;
-	height:100%;
+	width:100% !important;
+	height:100% !important;
 	background-color:#313131;
 	/**background-color:#f5f4ef;**/
 	color:#474743;
@@ -18,10 +18,6 @@ body {
 	-ms-overflow-style: scrollbar;
 	-webkit-user-select: none;
 	-webkit-app-region:drag;
-}
-
-.full {
-	height: 100% !important;
 }
 /** Button window dragging fix **/
 input[type="submit"],
@@ -108,7 +104,9 @@ button:disabled {
 }
 
 h2 {
-	padding-left: 7px;
+	line-height: 1.2em;
+	margin:0;
+	padding:6px 0px;
 }
 
 a {

@@ -1,8 +1,18 @@
 # Nautilus
-> A simple EOS development management application
+> A simple EOS development manager
 
 ## Usage
 ...
+
+## Features
+1. Environment
+Setup environment to manage development, staging and production across local and remote networks.
+
+2. Key Management
+Track public keys and their associate
+
+3. Account Managment
+Create and manage accounts across 
 
 ## Similar Projects
 Other great EOS management libraries:

@@ -57,7 +57,7 @@ export default class Navigation extends React.Component {
 				<button onClick={this.didSelectAccounts.bind(this)} style={buttonStyle}>A</button>
 				<button onClick={this.didSelectFiles.bind(this)} style={buttonStyle}>F</button>
 				<button onClick={this.didSelectContracts.bind(this)} style={buttonStyle}>C</button>
-				<span style={{...statusStyle,margin:"0px 5px"}}></span>
+				<span style={{...statusStyle,margin:"20px"}}></span>
 			</div>
 		)
 	}

@@ -1,7 +1,12 @@
 // Modules
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import createHash from 'create-hash';
-const { dialog } = remote;
+import ElectronStore from 'electron-store';
+
+const db = new ElectronStore({
+	name:'files',
+	defaults:{}
+});
 // Types
 import {
 	MERGE_FILE,
@@ -9,7 +14,8 @@ import {
 	REMOVE_FILE,
 	COMPILED_FILE,
 	DEPLOYED_FILE,
-	MODIFY_FILE
+	MODIFY_FILE,
+	ADD_FILES
 } from './FileTypes';
 
 import {
@@ -19,6 +25,16 @@ import {
 
 const HASH_LENGTH = 6;
 let watching = false;
+
+export const loadFiles = () => dispatch => {
+	console.log(db.store);
+	dispatch({ type:ADD_FILES,payload:db.store });
+
+	ipcRenderer.on('file:changed', (event, uid) => {
+		console.log("Modified",uid)
+		dispatch({ type:MODIFY_FILE,payload:uid});
+	});
+}
 
 /**
  * Watch Directory
@@ -33,17 +49,7 @@ export const watchDirectory = directory => dispatch => {
 	if (watching) return;
 	watching = true;
 
-	if (!directory && 'string' === typeof directory) {
-		dialog.showOpenDialog({
-			properties: ['openDirectory']
-		}, (fileNames) => {
-			console.log(fileNames)
-			if (!fileNames || fileNames.length <= 0) return;
-			ipcRenderer.send('directory:watch', fileNames[0]);
-		});
-	} else {
-		ipcRenderer.send('directory:watch', directory);
-	}
+	ipcRenderer.send('directory:watch', directory);
 
 	ipcRenderer.on('file:added', (event, { path, modified, size }) => {
 
@@ -66,13 +72,13 @@ export const watchDirectory = directory => dispatch => {
 		}});
 	});
 
-	ipcRenderer.on('file:changed', (event, path) => {
-		let uid = generateUid(path);
+	ipcRenderer.on('file:changed', (event, uid) => {
+		console.log("Modified",uid)
 		dispatch({ type:MODIFY_FILE,payload:uid});
 	});
 
 	ipcRenderer.on('file:removed', (event, path) => {
-		let uid = generateUid(path);
+		const uid = generateUid(path);
 		dispatch({ type:REMOVE_FILE,payload:uid });
 	});
 }

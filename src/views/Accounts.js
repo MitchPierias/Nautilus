@@ -29,7 +29,7 @@ function mapStateToProps({ accounts }) {
 class Accounts extends React.Component {
 
 	state = {
-		name:'',
+		name:null,
 		selected:false
 	}
 
@@ -60,9 +60,15 @@ class Accounts extends React.Component {
 
 	didSelectCreateAccount(event) {
 		event.preventDefault();
+		const illegalChars = /[\W\d\_]/gi;
 		const { name } = this.state;
 		if (name && 'string' === typeof name && name.length > 0) {
-			this.props.createAccount(name);
+			if (illegalChars.test(name)) {
+				alert("Illegal chars");
+			} else {
+				this.props.createAccount(name.toLowerCase());
+				event.target.value = '';
+			}
 		} else {
 			alert("A valid name is required");
 		}
@@ -100,10 +106,10 @@ class Accounts extends React.Component {
 
 		return (
 			<div style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
-				<aside style={{flex:"6 10",borderRight:"1px solid #313131"}}>
+				<aside style={{flex:"6 10",borderRight:"1px solid #313131",padding:"8px"}}>
 					<h2>Accounts</h2>
 					<span style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
-						<input name="name" type="text" placeholder="Account name" onChange={this.didChangeNameField.bind(this)} style={{flex:"6 4"}}/>
+						<input id="name" name="name" type="text" defaultValue={this.state.name} placeholder="Account name" onChange={this.didChangeNameField.bind(this)} style={{flex:"6 4"}}/>
 						<button onClick={this.didSelectCreateAccount.bind(this)} style={{flex:"none"}}>Create Account</button>
 					</span>
 					<div>

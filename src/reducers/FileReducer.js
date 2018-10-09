@@ -52,6 +52,7 @@ export default (state = INITIAL_STATE, action) => {
 			return { ...state, [action.payload]:file2 };
 		case MODIFY_FILE:
 			let file3 = state[action.payload];
+			file3.modified = true;
 			if (file3.wasm) {
 				let wasm = state[file3.wasm].modified = true;
 				state = { ...state, [file3.wasm]:wasm };
