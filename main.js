@@ -34,7 +34,7 @@ let mainWindow, watcher;
 
 function createWindow () {
 	// Create the browser window.
-	mainWindow = new BrowserWindow({width:1000,height:700,minWidth:900,minHeight:600});
+	mainWindow = new BrowserWindow({width:1000,height:700,minWidth:500,minHeight:600});
 
 	// and load the index.html of the app.
 	mainWindow.loadURL(`file://${__dirname}/public/index.html`);
@@ -99,27 +99,33 @@ function createWindow () {
 	}
 	// Declare the listeners of the watcher
 	watcher.on('add', function(path, { size, mtimeMS, birthtimeMs }) {
-		//console.log(colors.yellow("Added file"),colors.grey(path));
+
 		const dirPattern = /(.*\/).*/gi;
 		const pathComponents = dirPattern.exec(path);
-		const rootPath = pathComponents[1];
 		const fileComponents = path.replace(pathComponents[1],'').split('.');
-		const contract = generateUid(fileComponents[0]);
-		const uid = generateUid(path); 
-		const key = (fileComponents[1] === 'cpp') ? 'contract' : fileComponents[1];
-		//const existing = store.get(fileComponents[0], { code:fileComponents[0], root:rootPath, wasm:false, abi:false, contract:false, created:birthtimeMs, modified:(mtimeMS||false) });
-		//existing[key] = uid;
+		
+		const dir = pathComponents[1];
+		const name = fileComponents[0];
+		const extension = fileComponents[1];
+		const uid = generateUid(path);
+		// Construct data
+		const data = { uid, name, extension, path:dir, file:fileComponents.join('.'), size };
+		if (mtimeMS) data.modified = mtimeMS;
+		if (birthtimeMs) data.created = birthtimeMs;
 		//store.set(fileComponents[0], existing);
-		mergeFile({ path, modified:mtimeMS, created:birthtimeMs, size });
+		updateFile(uid, data);
 	}).on('addDir', function(path) {
 		//console.log('Directory', path, 'has been added');
 	}).on('change', function(path) {
 		const uid = generateUid(path);
-		mainWindow.webContents.send('file:changed', uid);
-		console.log(colors.cyan("Updated file"),colors.grey(path));
+		updateFile(uid, { modified:true });
+		//mainWindow.webContents.send('file:changed', uid);
+		//console.log(colors.cyan("Updated file"),colors.grey(path));
 	}).on('unlink', function(path) {
-		mainWindow.webContents.send('file:removed', path);
-		console.log(colors.red("Removed file"),colors.grey(path));
+		//mainWindow.webContents.send('file:removed', path);
+		//console.log(colors.red("Removed file"),colors.grey(path));
+		const uid = generateUid(path);
+		store.delete(uid);
 	}).on('unlinkDir', function(path) {
 		//console.log(colors.red("Removed directory"),colors.grey(path));
 	}).on('error', function(error) {
@@ -127,29 +133,27 @@ function createWindow () {
 	}).on('ready', onWatcherReady);
 }
 
-function mergeFile({ path, modified = false, created = false, size }) {
+function cleanse(obj, schema) {
+	// Should cleanse data props
+	return obj;
+}
 
-	const dirPattern = /(.*\/).*/gi;
-	const pathComponents = dirPattern.exec(path);
-	const fileComponents = path.replace(pathComponents[1],'').split('.');
-	
-	const dir = pathComponents[1];
-	const name = fileComponents[0];
-	const extension = fileComponents[1];
-	const uid = generateUid(path);
+function updateFile(uid, data) {
+	data = cleanse(data);
+	const file = store.get(uid, DEFAULT_FILE_DATA);
+	const merged = Object.assign(file, data);
+	store.set(uid, merged);
+}
 
-	const data = {
-		uid,
-		name,
-		extension,
-		path:dir,
-		file:name+'.'+extension,
-		modified,
-		created,
-		size
-	}
-	//console.log(colors.yellow("ADD : "+uid), data);
-	store.set(uid, data);
+const DEFAULT_FILE_DATA = {
+	uid:'',
+	name:'',
+	extension:'',
+	path:'',
+	file:'',
+	modified:false,
+	created:false,
+	size:0
 }
 
 // This method will be called when Electron has finished
