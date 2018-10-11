@@ -29,7 +29,7 @@ class AccountDetail extends React.Component {
 	render() {
 
 		return (
-			<section style={{flex:"8 2",backgroundColor:"#252525",color:"#BABABA",padding:"14px",...this.props.style}}>
+			<section style={{flex:"8 2",backgroundColor:"#252525",color:"#BABABA",padding:"12px",...this.props.style}}>
 				<div style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
 					<span>{this.props.code} Auth</span>
 					<button onClick={this.didSelectMakeContract.bind(this)}>Make contract</button>

@@ -14,7 +14,7 @@ export default function Routes(props) {
 			<Route path="/accounts" component={Accounts}/>
 			<Route path="/files" component={Files}/>
 			<Route path="/contracts" component={Contracts}/>
-			<Route component={Accounts}/>
+			<Route component={Files}/>
 		</Switch>
 	)
 }

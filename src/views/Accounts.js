@@ -11,15 +11,15 @@ import { loadAccounts, createAccount } from '../actions/AccountActions';
 const cardStyle = {
 	backgroundColor:"transparent",
 	border:"none",
-	color:"#BABABA",
-	padding:"10px",
-	borderBottom:"2px solid #313131",
+	color:"#4B4B4B",
+	borderBottom:"1px solid rgba(255,255,255,0.05)",
 	display:"flex",
 	flexDirection:"row",
 	justifyContent:"flex-start",
 	alignItems:"center",
 	alignContent:"stretch",
-	cursor:"pointer"
+	cursor:"pointer",
+	padding:0
 }
 
 function mapStateToProps({ accounts }) {
@@ -98,28 +98,43 @@ class Accounts extends React.Component {
 			borderBottomWidth:"2px"
 		}
 
+		const { selected } = this.state;
+
 		const accountList = Object.values(this.props.accounts).map((account, idx) => 
-			<div key={idx} style={cardStyle} onClick={this.didSelectAccount.bind(this, account.uuid)}>
-				<span>{account.name}</span>
+			<div key={idx} style={{...cardStyle,backgroundColor:((selected===account.name)?"rgba(0,0,0,0.1)":"transparent")}} onClick={this.didSelectAccount.bind(this, account.uuid)}>
+				{(account.name===selected)
+					? <span style={{display:"inline-block",width:"5px",height:"10px",backgroundColor:"#ECD1A2",borderRadius:"0 5px 5px 0"}}></span>
+					: null
+				}
+				<span style={{margin:"10px"}}>
+					<h4 style={{margin:"6px 0px",fontWeight:400,color:"#BABABA",padding:0}}>{toCamelCase(account.name)}</h4>
+					<p style={{fontSize:"0.8em",fontWeight:500,margin:"4px 0px"}}>Comment here</p>
+				</span>
 			</div>
 		);
 
 		return (
 			<div style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
-				<aside style={{flex:"6 10",borderRight:"1px solid #313131",padding:"8px"}}>
-					<h2>Accounts</h2>
+				<aside style={{flex:"4 10",padding:"8px"}}>
 					<span style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
 						<input id="name" name="name" type="text" defaultValue={this.state.name} placeholder="Account name" onChange={this.didChangeNameField.bind(this)} style={{flex:"6 4"}}/>
 						<button onClick={this.didSelectCreateAccount.bind(this)} style={{flex:"none"}}>Create Account</button>
 					</span>
-					<div>
-						{accountList}
+					<div style={{margin:"5px",padding:0,backgroundColor:"#252525",borderRadius:"8px"}}>
+						{(Object.keys(this.props.accounts).length > 0)
+							? accountList
+							: <div style={{padding:"24px",margin:0,textAlign:"center"}}><h4>No Accounts</h4><p>Would you like to create some?</p></div>
+						}
 					</div>
 				</aside>
-				{(this.state.selected)?<AccountDetail code={this.state.selected}/>:null}
+				<AccountDetail code={this.state.selected}/>
 			</div>
 		)
 	}
+}
+
+function toCamelCase(str) {
+	return str.substr(0,1).toUpperCase() + str.substr(1,str.length-1);
 }
 
 export default connect(mapStateToProps, {loadAccounts,createAccount})(Accounts);

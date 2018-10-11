@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 
 export default class Navigation extends React.Component {
 
@@ -37,26 +38,37 @@ export default class Navigation extends React.Component {
 		}
 
 		const buttonStyle = {
-			width:"36px",
-			height:"36px",
-			margin:"2.5px",
-			border:"2px solid #ECD1A2",
-			borderRadius:"50%",
+			minWidth:"36px",
+			padding:"10px 16px",
+			fontSize:"0.9em",
+			margin:0,
+			border:"none",
+			borderBottom:"1px solid transparent",
+			borderRadius:0,
 			outline:"none",
 			backgroundColor:"transparent",
 			textAlign:"center",
+			textDecoration:"none",
+			color:"#B2B3B7",
+			cursor:"pointer",
+			fontWeight:500,
+			border:"1px solid red",
 			verticalAlign:"center"
+		}
+
+		const buttonStyleSelected = {
+			borderBottom:"1px solid #ECD1A2"
 		}
 
 		const { style } = this.props;
 
 		return (
-			<div style={{flex:"none",width:"55px",backgroundColor:"#1B1B1B",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"center",alignContent:"stretch",padding:"2.5px"}}>
-				<img style={{width:"40px",height:"40px",padding:0,margin:"5px"}} src="./logo.png"/>
-				<button onClick={this.didSelectKeys.bind(this)} style={buttonStyle}>K</button>
-				<button onClick={this.didSelectAccounts.bind(this)} style={buttonStyle}>A</button>
-				<button onClick={this.didSelectFiles.bind(this)} style={buttonStyle}>F</button>
-				<button onClick={this.didSelectContracts.bind(this)} style={buttonStyle}>C</button>
+			<div style={{flex:"none",height:"50px",backgroundColor:"#1B1B1B",display:"flex",flexDirection:"row",justifyContent:"flex-start",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
+				<img style={{width:"34px",height:"34px",padding:0,margin:"7px"}} src="./logo.png"/>
+				<NavLink to="/keys" activeStyle={buttonStyleSelected} style={buttonStyle}>Keys</NavLink>
+				<NavLink to="/accounts" activeStyle={buttonStyleSelected} style={buttonStyle}>Accounts</NavLink>
+				<NavLink to="/files" activeStyle={buttonStyleSelected} style={buttonStyle}>Files</NavLink>
+				<NavLink to="/contracts" activeStyle={buttonStyleSelected} style={buttonStyle}>Contracts</NavLink>
 				<span style={{...statusStyle,margin:"20px"}}></span>
 			</div>
 		)

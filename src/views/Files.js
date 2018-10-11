@@ -39,16 +39,15 @@ class Files extends React.Component {
 		const bgColor = "#16FFBD";
 		
 		return (
-			<section style={{flex:"8 2",backgroundColor:"#252525",color:"#BABABA",padding:"12px",...style,overscrollX:"hidden",overscrollY:"auto"}}>
-				<div style={{width:"95%",padding:"2%"}}>
+			<section style={{flex:"8 2",backgroundColor:"#252525",color:"#BABABA",padding:"12px",...style,overscrollX:"hidden",overscrollY:"auto",display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
+				<div style={{padding:"2%"}}>
 					<button onClick={this.didSelectDirectory.bind(this)} style={{width:"100%"}}>Select working directory</button>
 				</div>
-				<section style={{height:"100%",overflowX:"hidden",overflowY:"auto"}}>
+				<section style={{overflowX:"hidden",overflowY:"auto"}}>
 					{Object.values(this.props.files).map(( file, idx ) => {
 						return (
 							<div key={idx} style={{border:"1px solid #383838",borderRadius:"7px",margin:"7px",padding:"7px"}}>
 								<span style={{flex:"none",backgroundColor:((file.deployed)?deployedColor:((file.modified)?defaultColor:compiledColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
-								<span style={{padding:"7px"}}>{file.uid}</span>
 								<span style={{padding:"7px"}}>{file.name}.{file.extension}</span>
 							</div>
 						)

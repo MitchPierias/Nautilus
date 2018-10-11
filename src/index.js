@@ -12,7 +12,7 @@ import Routes from './views';
 const App = (
 	<Provider store={store}>
 		<Router basename="/">
-			<div style={{position:"absolute",width:"100%",height:"100%",display:"flex",flexDirection:"row",justifyContent:"flex-start",alignItems:"stretch",alignContent:"stretch",margin:0,padding:0}}>
+			<div style={{position:"absolute",width:"100%",height:"100%",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"stretch",alignContent:"stretch",margin:0,padding:0}}>
 				<Route component={Navigation}/>
 				<Routes/>
 			</div>
