@@ -6,6 +6,10 @@ import {
 	REMOVE_ALL_ACCOUNTS
 } from './AccountTypes';
 
+import {
+	ADD_CONTRACT
+} from './ContractTypes';
+
 /**
  * Create Account
  * @desc Creates a new account
@@ -16,7 +20,13 @@ import {
  */
 export const createAccount = name => dispatch => {
 
-	ipcRenderer.send('account:create', name);
+	const illegalChars = /[\W\d\_]/gi;
+	if (illegalChars.test(name)) {
+		console.error("Illegal chars in 'createAccount' action");
+		return;
+	}
+
+	ipcRenderer.send('account:create', name.toLowerCase());
 
 	ipcRenderer.on('account:created', (event, name) => {
 		console.log("Account",name,"created");
@@ -38,4 +48,16 @@ export const loadAccounts = () => dispatch => {
 			dispatch({type:ADD_ACCOUNT,payload:{uuid:name,name,code:''}});
 		});
 	});
+}
+
+export const convertAccount = code => dispatch => {
+
+	console.log("Convert account '"+code+"' to contract");
+
+	dispatch({type:ADD_CONTRACT,payload:{code,contract:'926A66B2'}});
+}
+
+export const getCode = name => dispatch => {
+
+	ipcRenderer.send('account:code', name);
 }

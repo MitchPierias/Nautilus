@@ -1,7 +1,11 @@
-/** Added Files **/
+/** Added Contract **/
 export const ADD_CONTRACT = 'ADD_CONTRACT';
+/** Added Contracts **/
+export const ADD_CONTRACTS = 'ADD_CONTRACTS';
 
 export const UPDATE_CONTRACT = 'UPDATE_CONTRACT';
+
+export const COMPILED_CONTRACT = 'COMPILED_CONTRACT';
 
 export const DEPLOYED_CONTRACT = 'DEPLOYED_CONTRACT';
 

@@ -33,6 +33,7 @@ class Contracts extends React.Component {
 	componentWillMount() {
 		// Everytime we view or reload this component, we start a new observer
 		this.props.watchDirectory('/Users/mitch/Contracts/Nautilus/contracts');
+		console.log(this.props.contracts)
 	}
 
 	didSelectContract({ code }) {
@@ -44,6 +45,7 @@ class Contracts extends React.Component {
 		const { style } = this.props;
 		const { code } = this.state;
 		const selected = this.props.contracts[code] || {};
+		console.log(selected)
 
 		return (
 			<section style={{flex:"10 5",display:"flex",flexDirection:"row",justifyContent:"space-around",alignItems:"stretch",alignContent:"stretch"}}>

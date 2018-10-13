@@ -16,3 +16,5 @@ export const REMOVE_FILE = 'REMOVE_FILE';
 export const REMOVE_ALL_FILES = 'REMOVE_ALL_FILES';
 /** Modified File **/
 export const MODIFY_FILE = 'MODIFY_FILE';
+/** Link File **/
+export const LINK_FILE = 'LINK_FILE';

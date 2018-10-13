@@ -1,7 +1,12 @@
 // Modules
-import { ipcRenderer, remote } from 'electron';
+import { ipcRenderer } from 'electron';
 import createHash from 'create-hash';
-const { dialog } = remote;
+import ElectronStore from 'electron-store';
+
+const db = new ElectronStore({
+	name:'files',
+	defaults:{}
+});
 // Types
 import {
 	MERGE_FILE,
@@ -9,16 +14,27 @@ import {
 	REMOVE_FILE,
 	COMPILED_FILE,
 	DEPLOYED_FILE,
-	MODIFY_FILE
+	MODIFY_FILE,
+	ADD_FILES
 } from './FileTypes';
 
 import {
+	COMPILED_CONTRACT,
 	REFRESH_CONTRACT,
 	DEPLOYED_CONTRACT
 } from './ContractTypes';
 
-const HASH_LENGTH = 6;
-let watching = false;
+const HASH_LENGTH = 8;
+
+export const loadFiles = () => dispatch => {
+	
+	dispatch({ type:ADD_FILES,payload:db.store });
+
+	ipcRenderer.on('file:changed', (event, uid) => {
+		console.log("Modified",uid)
+		dispatch({ type:MODIFY_FILE,payload:uid});
+	});
+}
 
 /**
  * Watch Directory
@@ -30,20 +46,7 @@ let watching = false;
  */
 export const watchDirectory = directory => dispatch => {
 
-	if (watching) return;
-	watching = true;
-
-	if (!directory && 'string' === typeof directory) {
-		dialog.showOpenDialog({
-			properties: ['openDirectory']
-		}, (fileNames) => {
-			console.log(fileNames)
-			if (!fileNames || fileNames.length <= 0) return;
-			ipcRenderer.send('directory:watch', fileNames[0]);
-		});
-	} else {
-		ipcRenderer.send('directory:watch', directory);
-	}
+	ipcRenderer.send('directory:watch', directory);
 
 	ipcRenderer.on('file:added', (event, { path, modified, size }) => {
 
@@ -66,13 +69,13 @@ export const watchDirectory = directory => dispatch => {
 		}});
 	});
 
-	ipcRenderer.on('file:changed', (event, path) => {
-		let uid = generateUid(path);
+	ipcRenderer.on('file:changed', (event, uid) => {
+		console.log("Modified",uid)
 		dispatch({ type:MODIFY_FILE,payload:uid});
 	});
 
 	ipcRenderer.on('file:removed', (event, path) => {
-		let uid = generateUid(path);
+		const uid = generateUid(path);
 		dispatch({ type:REMOVE_FILE,payload:uid });
 	});
 }
@@ -82,14 +85,17 @@ export const compileFile = (file, type) => dispatch => {
 	const input = file.path+file.name+'.'+file.extension;
 	const output = file.path+file.name+'.'+type;
 
+	console.log("Compile",input)
+
 	ipcRenderer.send('compile:file', { input, output, type });
 
 	ipcRenderer.on('compile:complete', (event, { input, output, type }) => {
 		const code = file.name;
 		const outputID = generateUid(output);
-		console.log("Compiled",code,"with outpute",outputID,"path",output);
+		console.log("Compiled",code,"with output",outputID,"path",output);
 		// Dispatch complete notification
-		dispatch({type:COMPILED_FILE,payload:{code,type,value:outputID}});
+		dispatch({type:COMPILED_CONTRACT,payload:{code,type,value:outputID}});
+		dispatch({type:COMPILED_FILE,payload:{uid:outputID,type,path:output}});
 	});
 }
 
@@ -97,6 +103,8 @@ export const deployFile = (code, wasm, abi) => dispatch => {
 
 	const wasmPath = wasm.path+wasm.name+'.'+wasm.extension;
 	const abiPath = abi.path+abi.name+'.'+abi.extension;
+
+	console.log("Deploy",wasmPath)
 
 	ipcRenderer.send('deploy:contract', { code, files:[{type:'wasm',fullPath:wasmPath},{type:'abi',fullPath:abiPath}] });
 
@@ -111,6 +119,6 @@ export const deployFile = (code, wasm, abi) => dispatch => {
 	});
 }
 
-function generateUid(fullPath, dateCreated) {
-	return createHash('sha256').update(fullPath+':'+dateCreated).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
+function generateUid(fullPath) {
+	return createHash('sha256').update(fullPath).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
 }

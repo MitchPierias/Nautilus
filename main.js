@@ -7,11 +7,15 @@ const binaryen = require('binaryen');
 const colors = require('colors');
 const EOS = require('eosjs');
 const ElectronStore = require('electron-store');
+const createHash = require('create-hash');
+const HASH_LENGTH = 8;
 
 const store = new ElectronStore({
-	name:'cache',
+	name:'files',
 	defaults:{}
 });
+
+const keys = ["EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F"];
 
 const eos = EOS({
 	chainId: "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
@@ -26,11 +30,11 @@ const eos = EOS({
   
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
+let mainWindow, watcher;
 
 function createWindow () {
 	// Create the browser window.
-	mainWindow = new BrowserWindow({width: 900, height: 680});
+	mainWindow = new BrowserWindow({width:1000,height:700,minWidth:500,minHeight:600});
 
 	// and load the index.html of the app.
 	mainWindow.loadURL(`file://${__dirname}/public/index.html`);
@@ -84,6 +88,72 @@ function createWindow () {
 	]);
 
 	Menu.setApplicationMenu(menu);
+
+	watcher = chokidar.watch('/Users/mitch/Contracts/Nautilus/contracts', {
+		ignored: /[\/\\]\./,
+		persistent: true
+	});
+
+	function onWatcherReady() {
+		console.info(colors.white('Chokidar is watching directory: /Users/mitch/Contracts/Nautilus/contracts'));
+	}
+	// Declare the listeners of the watcher
+	watcher.on('add', function(path, { size, mtimeMS, birthtimeMs }) {
+
+		const dirPattern = /(.*\/).*/gi;
+		const pathComponents = dirPattern.exec(path);
+		const fileComponents = path.replace(pathComponents[1],'').split('.');
+		
+		const dir = pathComponents[1];
+		const name = fileComponents[0];
+		const extension = fileComponents[1];
+		const uid = generateUid(path);
+		// Construct data
+		const data = { uid, name, extension, path:dir, file:fileComponents.join('.'), size };
+		if (mtimeMS) data.modified = mtimeMS;
+		if (birthtimeMs) data.created = birthtimeMs;
+		//store.set(fileComponents[0], existing);
+		updateFile(uid, data);
+	}).on('addDir', function(path) {
+		//console.log('Directory', path, 'has been added');
+	}).on('change', function(path) {
+		const uid = generateUid(path);
+		updateFile(uid, { modified:true });
+		//mainWindow.webContents.send('file:changed', uid);
+		//console.log(colors.cyan("Updated file"),colors.grey(path));
+	}).on('unlink', function(path) {
+		//mainWindow.webContents.send('file:removed', path);
+		//console.log(colors.red("Removed file"),colors.grey(path));
+		const uid = generateUid(path);
+		store.delete(uid);
+	}).on('unlinkDir', function(path) {
+		//console.log(colors.red("Removed directory"),colors.grey(path));
+	}).on('error', function(error) {
+		//console.log('Error happened', error);
+	}).on('ready', onWatcherReady);
+}
+
+function cleanse(obj, schema) {
+	// Should cleanse data props
+	return obj;
+}
+
+function updateFile(uid, data) {
+	data = cleanse(data);
+	const file = store.get(uid, DEFAULT_FILE_DATA);
+	const merged = Object.assign(file, data);
+	store.set(uid, merged);
+}
+
+const DEFAULT_FILE_DATA = {
+	uid:'',
+	name:'',
+	extension:'',
+	path:'',
+	file:'',
+	modified:false,
+	created:false,
+	size:0
 }
 
 // This method will be called when Electron has finished
@@ -171,39 +241,18 @@ ipcMain.on('deploy:contract', (event, { code, files }) => {
 
 ipcMain.on('directory:watch', (event, directory) => {
 
-	const watcher = chokidar.watch(directory, {
-		ignored: /[\/\\]\./,
-		persistent: true
-	});
-
-	function onWatcherReady() {
-		console.info(colors.white('Chokidar is watching directory: '+directory));
-	}
-	// Declare the listeners of the watcher
-	watcher.on('add', function(path, { size, mtimeMS, birthtimeMs }) {
-		console.log(colors.yellow("Added file"),colors.grey(path));
-		store.set(path, { path, size, created:birthtimeMs, modified:mtimeMS });
-		mainWindow.webContents.send('file:added', { path, size, created:birthtimeMs, modified:mtimeMS });
-	}).on('addDir', function(path) {
-		//console.log('Directory', path, 'has been added');
-	}).on('change', function(path) {
-		mainWindow.webContents.send('file:changed', path);
-		console.log(colors.cyan("Updated file"),colors.grey(path));
-	}).on('unlink', function(path) {
-		mainWindow.webContents.send('file:removed', path);
-		console.log(colors.red("Removed file"),colors.grey(path));
-	}).on('unlinkDir', function(path) {
-		//console.log(colors.red("Removed directory"),colors.grey(path));
-	}).on('error', function(error) {
-		//console.log('Error happened', error);
-	}).on('ready', onWatcherReady);
+	const currentPaths = watcher.getWatched();
+	console.log("Watching", Object.keys(currentPaths));
+	watcher.unwatch(Object.keys(currentPaths));
+	console.log("Cleared paths, add", directory)
+	watcher.add(directory);
 });
 
 ipcMain.on('account:create', (event, name) => {
 
 	const creator = "eosio";
-	const ownerKey = "EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F";
-	const activeKey = "EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F";
+	const ownerKey = keys[0];
+	const activeKey = keys[0];
 
 	eos.newaccount({
 		creator: creator,
@@ -220,8 +269,8 @@ ipcMain.on('account:create', (event, name) => {
 });
 
 ipcMain.on('account:load', (event, key) => {
-	key = "EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F";
-	eos.getKeyAccounts(key, (err, { account_names }) => {
+
+	eos.getKeyAccounts(keys[0], (err, { account_names }) => {
 		if (err) {
 			console.log(colors.red("ERROR"),colors.grey(err));
 		} else {
@@ -231,8 +280,14 @@ ipcMain.on('account:load', (event, key) => {
 });
 
 ipcMain.on('account:code', (event, name) => {
-	eos.getCode(name, (error, code_hash) => {
+	eos.getCodeHash(name).then((account_name, code_hash) => {
+		console.log(colors.grey("Name"),account_name);
 		console.log(colors.cyan("Code"),code_hash);
+	}).catch(error => {
 		console.log(colors.red("ERROR"),colors.yellow(error));
 	});
 });
+
+function generateUid(fullPath) {
+	return createHash('sha256').update(fullPath).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
+}

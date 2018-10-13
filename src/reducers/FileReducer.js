@@ -44,7 +44,8 @@ export default (state = INITIAL_STATE, action) => {
 		case REMOVE_ALL_FILES:
 			return INITIAL_STATE;
 		case COMPILED_FILE:
-			//console.log("Compiled", action.payload);
+			const existing2 = state[action.payload];
+			console.log("Compiled", action.payload,"Existing",existing2);
 			//return { ...state, [action.payload[ARGUMENT_KEY]]:action.payload }
 		case DEPLOYED_FILE:
 			let file2 = state[action.payload];
@@ -52,6 +53,7 @@ export default (state = INITIAL_STATE, action) => {
 			return { ...state, [action.payload]:file2 };
 		case MODIFY_FILE:
 			let file3 = state[action.payload];
+			file3.modified = true;
 			if (file3.wasm) {
 				let wasm = state[file3.wasm].modified = true;
 				state = { ...state, [file3.wasm]:wasm };
