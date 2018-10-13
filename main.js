@@ -5,7 +5,11 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const binaryen = require('binaryen');
 const colors = require('colors');
-const EOS = require('eosjs');
+// EOS
+const eosjs = require('eosjs');
+const fetch = require('node-fetch');
+const { TextDecoder, TextEncoder } = require('text-encoding');
+// Cache
 const ElectronStore = require('electron-store');
 const createHash = require('create-hash');
 const HASH_LENGTH = 8;
@@ -16,17 +20,34 @@ const store = new ElectronStore({
 });
 
 const keys = ["EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F"];
+const HTTP_ENDPOINT = 'http://127.0.0.1:8888';
+const CHAIN_ID = 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f';
+const PRIVATE_KEYS = ["5JgyBhAvhfhH4Xo474EV1Zjm9uhEGjWXr62tj17aYUKR36ocWzY","5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","5J5t5Xp9Ug4rwBLRZNLKyXCrAVBHAMWAXeZTgdHFW86BC3qCKbM","5Kay6rDnV1hjLQUwBeEPrfxMwYdAP3gwhLSkYmby7vd7jxGrfx8"];
 
-const eos = EOS({
-	chainId: "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
-	keyProvider: ["5JgyBhAvhfhH4Xo474EV1Zjm9uhEGjWXr62tj17aYUKR36ocWzY","5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","5J5t5Xp9Ug4rwBLRZNLKyXCrAVBHAMWAXeZTgdHFW86BC3qCKbM","5Kay6rDnV1hjLQUwBeEPrfxMwYdAP3gwhLSkYmby7vd7jxGrfx8"],
-	httpEndpoint: 'http://127.0.0.1:8888',
-	expireInSeconds: 60,
-	broadcast: true,
-	verbose: false,
-	sign: true,
-	binaryen
+/**
+ * Key Provider
+ * @desc Manages private and public keys for the network
+ */
+const signatureProvider = new eosjs.SignatureProvider(PRIVATE_KEYS);
+
+/**
+ * Connection
+ * @desc Manages a JSON-RPC Connection
+ */
+const rpc = new eosjs.Rpc.JsonRpc(HTTP_ENDPOINT, { fetch });
+
+/**
+ * API
+ * @desc API Constructor setup
+ */
+const eos = new eosjs.Api({
+	rpc,
+	signatureProvider,
+	textDecoder: new TextDecoder(),
+	textEncoder: new TextEncoder()
 });
+
+console.log(eos);
   
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
