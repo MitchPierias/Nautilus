@@ -6,7 +6,7 @@ const { ecc } = modules;
 // Components
 import AccountDetail from '../components/AccountDetail';
 // Actions
-import { loadAccounts, createAccount } from '../actions/AccountActions';
+import { loadAccounts, createAccount, getCode } from '../actions/AccountActions';
 
 const cardStyle = {
 	backgroundColor:"transparent",
@@ -43,6 +43,7 @@ class Accounts extends React.Component {
 
 	componentWillMount() {
 		this.props.loadAccounts();
+		this.props.getCode('game')
 	}
 
 	/**
@@ -137,4 +138,4 @@ function toCamelCase(str) {
 	return str.substr(0,1).toUpperCase() + str.substr(1,str.length-1);
 }
 
-export default connect(mapStateToProps, {loadAccounts,createAccount})(Accounts);
+export default connect(mapStateToProps, {loadAccounts,createAccount,getCode})(Accounts);

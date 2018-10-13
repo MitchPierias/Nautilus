@@ -39,7 +39,7 @@ function createWindow () {
 	// and load the index.html of the app.
 	mainWindow.loadURL(`file://${__dirname}/public/index.html`);
 	// Open the DevTools.
-	//mainWindow.webContents.openDevTools()
+	mainWindow.webContents.openDevTools()
 
 
 	// Emitted when the window is closed.
@@ -269,6 +269,7 @@ ipcMain.on('account:create', (event, name) => {
 });
 
 ipcMain.on('account:load', (event, key) => {
+
 	eos.getKeyAccounts(keys[0], (err, { account_names }) => {
 		if (err) {
 			console.log(colors.red("ERROR"),colors.grey(err));
@@ -279,8 +280,10 @@ ipcMain.on('account:load', (event, key) => {
 });
 
 ipcMain.on('account:code', (event, name) => {
-	eos.getCode(name, (error, code_hash) => {
+	eos.getCodeHash(name).then((account_name, code_hash) => {
+		console.log(colors.grey("Name"),account_name);
 		console.log(colors.cyan("Code"),code_hash);
+	}).catch(error => {
 		console.log(colors.red("ERROR"),colors.yellow(error));
 	});
 });

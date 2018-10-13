@@ -5,12 +5,9 @@ import {
 	ADD_CONTRACT,
 	ADD_CONTRACTS,
 	REFRESH_CONTRACT,
+	COMPILED_CONTRACT,
 	DEPLOYED_CONTRACT
 } from '../actions/ContractTypes';
-
-import {
-	COMPILED_FILE
-} from '../actions/FileTypes';
 // Globals
 const INITIAL_STATE = {}
 
@@ -20,7 +17,7 @@ export default (state = INITIAL_STATE, action) => {
 	switch (action.type) {
 		case ADD_CONTRACT:
 			const defaultData = {path:'',contract:false,entry:false,wasm:false,abi:false,modified:true,deployed:false,compiled:false};
-			const data = {defaultData,...action.payload}
+			const data = {...defaultData,...action.payload}
 			return { ...state, [action.payload.code]:data }
 		case ADD_CONTRACTS:
 			return { ...state, ..._.mapKeys(action.payload, KEY_ARGUMENT_ID)};
@@ -30,8 +27,9 @@ export default (state = INITIAL_STATE, action) => {
 			source.compiled = +new Date;
 			source.modified = false;
 			return { ...state, [source[KEY_ARGUMENT_ID]]:source }
-		case COMPILED_FILE:
+		case COMPILED_CONTRACT:
 			const contract = state[action.payload[KEY_ARGUMENT_ID]];
+			console.log(contract);
 			contract[action.payload.type] = action.payload.value;
 			return { ...state, [action.payload[KEY_ARGUMENT_ID]]:contract }
 		case DEPLOYED_CONTRACT:

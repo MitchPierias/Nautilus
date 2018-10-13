@@ -48,7 +48,7 @@ class Files extends React.Component {
 						return (
 							<div key={idx} style={{border:"1px solid #383838",borderRadius:"7px",margin:"7px",padding:"7px"}}>
 								<span style={{flex:"none",backgroundColor:((file.deployed)?deployedColor:((file.modified)?defaultColor:compiledColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
-								<span style={{padding:"7px"}}>{file.name}.{file.extension}</span>
+								<span style={{padding:"7px"}}>{file.uid} {file.name}.{file.extension}</span>
 							</div>
 						)
 					})}

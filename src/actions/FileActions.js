@@ -19,15 +19,15 @@ import {
 } from './FileTypes';
 
 import {
+	COMPILED_CONTRACT,
 	REFRESH_CONTRACT,
 	DEPLOYED_CONTRACT
 } from './ContractTypes';
 
-const HASH_LENGTH = 6;
-let watching = false;
+const HASH_LENGTH = 8;
 
 export const loadFiles = () => dispatch => {
-	console.log(db.store);
+	
 	dispatch({ type:ADD_FILES,payload:db.store });
 
 	ipcRenderer.on('file:changed', (event, uid) => {
@@ -45,9 +45,6 @@ export const loadFiles = () => dispatch => {
  * @return
  */
 export const watchDirectory = directory => dispatch => {
-
-	if (watching) return;
-	watching = true;
 
 	ipcRenderer.send('directory:watch', directory);
 
@@ -88,14 +85,17 @@ export const compileFile = (file, type) => dispatch => {
 	const input = file.path+file.name+'.'+file.extension;
 	const output = file.path+file.name+'.'+type;
 
+	console.log("Compile",input)
+
 	ipcRenderer.send('compile:file', { input, output, type });
 
 	ipcRenderer.on('compile:complete', (event, { input, output, type }) => {
 		const code = file.name;
 		const outputID = generateUid(output);
-		console.log("Compiled",code,"with outpute",outputID,"path",output);
+		console.log("Compiled",code,"with output",outputID,"path",output);
 		// Dispatch complete notification
-		dispatch({type:COMPILED_FILE,payload:{code,type,value:outputID}});
+		dispatch({type:COMPILED_CONTRACT,payload:{code,type,value:outputID}});
+		dispatch({type:COMPILED_FILE,payload:{uid:outputID,type,path:output}});
 	});
 }
 
@@ -103,6 +103,8 @@ export const deployFile = (code, wasm, abi) => dispatch => {
 
 	const wasmPath = wasm.path+wasm.name+'.'+wasm.extension;
 	const abiPath = abi.path+abi.name+'.'+abi.extension;
+
+	console.log("Deploy",wasmPath)
 
 	ipcRenderer.send('deploy:contract', { code, files:[{type:'wasm',fullPath:wasmPath},{type:'abi',fullPath:abiPath}] });
 
@@ -117,6 +119,6 @@ export const deployFile = (code, wasm, abi) => dispatch => {
 	});
 }
 
-function generateUid(fullPath, dateCreated) {
-	return createHash('sha256').update(fullPath+':'+dateCreated).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
+function generateUid(fullPath) {
+	return createHash('sha256').update(fullPath).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
 }

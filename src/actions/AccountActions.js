@@ -56,3 +56,8 @@ export const convertAccount = code => dispatch => {
 
 	dispatch({type:ADD_CONTRACT,payload:{code,contract:'926A66B2'}});
 }
+
+export const getCode = name => dispatch => {
+
+	ipcRenderer.send('account:code', name);
+}

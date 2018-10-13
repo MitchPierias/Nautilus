@@ -30,7 +30,10 @@ class ContractDetail extends React.Component {
 
 	didSelectCompileFile(type, event) {
 		event.preventDefault();
-		if (!this.props.contract) return;
+		if (!this.props.contract) {
+			alert("No Contract specified");
+			return;
+		}
 		console.log(this.props.contract,this.props.files, this.props.files[this.props.contract]);
 		this.props.compileFile(this.props.files[this.props.contract],type);
 	}
@@ -86,13 +89,13 @@ class ContractDetail extends React.Component {
 				<section style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
 					<span style={{flex:"3 3",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"center",alignContent:"center",padding:"5px",margin:0}}>
 						<span style={{flex:"none",backgroundColor:((!wasm.compiled||wasm.modified)?defaultColor:((wasm.deployed)?deployedColor:compiledColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
-						<span style={{flex:"3 2"}}>WASM</span>
+						<span style={{flex:"3 2"}}>WASM {wasm.uid}</span>
 						<span style={{flex:"7 3"}}>{wasm.file}</span>
 						<button style={{flex:"3 5"}} onClick={this.didSelectCompileFile.bind(this,'wasm')} disabled={wasm.file}>{(wasm.file)?"Compiled":"Compile WASM"}</button>
 					</span>
 					<span style={{flex:"3 3",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"flex-start",alignContent:"center",padding:"5px",margin:0}}>
 						<span style={{flex:"none",backgroundColor:((!abi.compiled||abi.modified)?defaultColor:((abi.deployed)?deployedColor:compiledColor)),width:"10px",height:"10px",display:"inline-block",borderRadius:"50%",margin:"8px"}}></span>
-						<span style={{flex:"3 2"}}>ABI</span>
+						<span style={{flex:"3 2"}}>ABI {abi.uid}</span>
 						<span style={{flex:"7 3"}}>{abi.file}</span>
 						<button style={{flex:"3 5"}} onClick={this.didSelectCompileFile.bind(this,'abi')} disabled={abi.file}>{(abi.file)?"Compiled":"Compile ABI"}</button>
 					</span>
