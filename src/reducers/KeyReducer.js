@@ -3,7 +3,7 @@ import _ from 'lodash';
 // Types
 import {
 	ADD_KEY
-} from '../actions/KeyTypes';
+} from '../types/KeyTypes';
 // Globals
 const INITIAL_STATE = [
 	"EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F",

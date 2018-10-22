@@ -8,22 +8,14 @@ import AccountDetail from '../components/AccountDetail';
 // Actions
 import { loadAccounts, createAccount, getCode } from '../actions/AccountActions';
 
-const cardStyle = {
-	backgroundColor:"transparent",
-	border:"none",
-	color:"#4B4B4B",
-	borderBottom:"1px solid rgba(255,255,255,0.05)",
-	display:"flex",
-	flexDirection:"row",
-	justifyContent:"flex-start",
-	alignItems:"center",
-	alignContent:"stretch",
-	cursor:"pointer",
-	padding:0
-}
-
 function mapStateToProps({ accounts }) {
 	return { accounts };
+}
+
+const mapDispatchToProps = {
+	loadAccounts,
+	createAccount,
+	getCode
 }
 
 class Accounts extends React.Component {
@@ -60,6 +52,8 @@ class Accounts extends React.Component {
 	}
 
 	didSelectCreateAccount(event) {
+		console.log("Create account")
+		return;
 		event.preventDefault();
 		const illegalChars = /[\W\d\_]/gi;
 		const { name } = this.state;
@@ -75,67 +69,70 @@ class Accounts extends React.Component {
 		}
 	}
 
-	didSelectAccount(code) {
-		if (code === this.state.selected) code = false;
-		this.setState({ selected:code });
+	didSelectAccount(name) {
+		if (name === this.state.selected) name = false;
+		this.setState({ selected:name });
 	}
 	
 	render() {
 
-		const menuStyle = {
-			listStyle:"none",
-			textAlign:"right",
-			padding:"8px 26px"
-		}
-
-		const menuItemStyle = {
-			fontSize:"9px",
-			fontWeight:500,
-			textTransform:"uppercase",
-			padding:"26px 0px 10px 0px",
-			borderWidth:0,
-			borderStyle:"solid",
-			borderColor:"rgba(255,255,255,0.2)",
-			borderBottomWidth:"2px"
-		}
-
 		const { selected } = this.state;
 
 		const accountList = Object.values(this.props.accounts).map((account, idx) => 
-			<div key={idx} style={{...cardStyle,backgroundColor:((selected===account.name)?"rgba(0,0,0,0.1)":"transparent")}} onClick={this.didSelectAccount.bind(this, account.uuid)}>
-				{(account.name===selected)
-					? <span style={{display:"inline-block",width:"5px",height:"10px",backgroundColor:"#ECD1A2",borderRadius:"0 5px 5px 0"}}></span>
-					: null
-				}
-				<span style={{margin:"10px"}}>
-					<h4 style={{margin:"6px 0px",fontWeight:400,color:"#BABABA",padding:0}}>{toCamelCase(account.name)}</h4>
-					<p style={{fontSize:"0.8em",fontWeight:500,margin:"4px 0px"}}>Comment here</p>
-				</span>
-			</div>
+			<AccountListItem key={idx} name={account.name} selected={(selected===account.name)} onClick={this.didSelectAccount.bind(this)}/>
 		);
 
 		return (
-			<div style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
-				<aside style={{flex:"4 10",padding:"8px"}}>
-					<span style={{display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:0,margin:0}}>
-						<input id="name" name="name" type="text" defaultValue={this.state.name} placeholder="Account name" onChange={this.didChangeNameField.bind(this)} style={{flex:"6 4"}}/>
-						<button onClick={this.didSelectCreateAccount.bind(this)} style={{flex:"none"}}>Create Account</button>
-					</span>
-					<div style={{margin:"5px",padding:0,backgroundColor:"#252525",borderRadius:"8px"}}>
-						{(Object.keys(this.props.accounts).length > 0)
-							? accountList
-							: <div style={{padding:"24px",margin:0,textAlign:"center"}}><h4>No Accounts</h4><p>Would you like to create some?</p></div>
-						}
-					</div>
+			<div style={{flex:"3 10",color:"#EDEDE5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:"12px",margin:0}}>
+				<aside style={{flex:"3 2",backgroundColor:"transparent",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"stretch",alignContent:"flex-start",border:"none",borderRight:"1px solid #212121",padding:0,margin:0}}>
+					{Object.values(this.props.accounts).map((account, idx) => {
+						return <AccountListItem key={idx} name={account.name} onClick={this.didSelectAccount.bind(this)} selected={(this.state.selected && this.state.selected === account.name)} notifications={((idx==1)?3:false)}/>
+					})}
+					<AccountListItem name="Create Contract" onClick={this.didSelectCreateAccount.bind(this)} selected={false}/>
 				</aside>
-				<AccountDetail code={this.state.selected}/>
+				<AccountDetail name={this.state.selected}/>
 			</div>
 		)
 	}
 }
 
-function toCamelCase(str) {
-	return str.substr(0,1).toUpperCase() + str.substr(1,str.length-1);
+function AccountListItem(props) {
+
+	const statusColor = (props.selected) ? "#ECD1A2" : "#424242";
+
+	const accountListItemStyle = {
+		backgroundColor:"transparent",
+		border:"none",
+		color:(props.selected)?"#E0E0E0":"#BABABA",
+		display:"flex",
+		flexDirection:"row",
+		justifyContent:"flex-start",
+		alignItems:"center",
+		alignContent:"stretch",
+		cursor:"pointer",
+		border:"none",
+		borderLeftWidth:"2px",
+		borderLeftStyle:"solid",
+		borderLeftColor:statusColor,
+		margin:"0px 4px",
+		padding:"6px 16px",
+		display:"flex",
+		flexDirection:"row",
+		justifyContent:"space-between",
+		alignItems:"stretch",
+		alignContent:"stretch"
+	}
+
+	return (
+		<div style={accountListItemStyle} onClick={props.onClick.bind(this, props.name)}>
+			<h3 style={{fontSize:"1em",color:(props.selected)?"#BDBDBD":"#747579"}}>{props.name.toCamelCase()}</h3>
+			<span style={{fontSize:"0.7em",fontWeight:600,backgroundColor:"transparent",color:"#ECD1A2"}}>{props.notifications}</span>
+		</div>
+	)
 }
 
-export default connect(mapStateToProps, {loadAccounts,createAccount,getCode})(Accounts);
+String.prototype.toCamelCase = function() {
+	return this.substr(0,1).toUpperCase() + this.substr(1,this.length-1);
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(Accounts);

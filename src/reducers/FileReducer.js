@@ -10,7 +10,7 @@ import {
 	COMPILED_FILE,
 	DEPLOYED_FILE,
 	MODIFY_FILE
-} from '../actions/FileTypes';
+} from '../types/FileTypes';
 // Globals
 const INITIAL_STATE = {};
 const ARGUMENT_KEY = 'uid';
@@ -49,22 +49,13 @@ export default (state = INITIAL_STATE, action) => {
 			//return { ...state, [action.payload[ARGUMENT_KEY]]:action.payload }
 		case DEPLOYED_FILE:
 			let file2 = state[action.payload];
-			if (file2) file2.deployed = +new Date;
+			if (file2) {
+				file2.deployed = +new Date;
+				file2.modified = false;
+			}
 			return { ...state, [action.payload]:file2 };
 		case MODIFY_FILE:
-			let file3 = state[action.payload];
-			file3.modified = true;
-			if (file3.wasm) {
-				let wasm = state[file3.wasm].modified = true;
-				state = { ...state, [file3.wasm]:wasm };
-				console.log("Wasm",wasm)
-			}
-			if (file3.abi) {
-				let abi = state[file3.abi].modified = true;
-				state = { ...state, [file3.abi]:abi };
-				console.log("Abi",abi)
-			}
-			return { ...state, [action.payload]:file3};
+			return { ...state, [action.payload[ARGUMENT_KEY]]:action.payload};
 		default:
 			return state;
 	}

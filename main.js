@@ -1,36 +1,39 @@
 // Modules
-const { app, BrowserWindow, Menu, shell, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Menu, Tray, ipcMain } = require('electron');
+const _path = require('path');
 const chokidar = require('chokidar');
 const { exec } = require('child_process');
 const fs = require('fs');
-const binaryen = require('binaryen');
+const crypto = require('crypto');
 const colors = require('colors');
-const EOS = require('eosjs');
+const eosjs = require('eosjs');
 const ElectronStore = require('electron-store');
+const Database = require('./FileStore');
 const createHash = require('create-hash');
-const HASH_LENGTH = 8;
 
-const store = new ElectronStore({
-	name:'files',
-	defaults:{}
-});
+const store = new Database.files();
+const { accounts, contracts } = Database;
 
 const keys = ["EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F"];
+const HTTP_ENDPOINT = 'http://127.0.0.1:8888';
+const CHAIN_ID = 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f';
+const PRIVATE_KEYS = ["5JgyBhAvhfhH4Xo474EV1Zjm9uhEGjWXr62tj17aYUKR36ocWzY","5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","5J5t5Xp9Ug4rwBLRZNLKyXCrAVBHAMWAXeZTgdHFW86BC3qCKbM","5Kay6rDnV1hjLQUwBeEPrfxMwYdAP3gwhLSkYmby7vd7jxGrfx8"];
+const AUTO_LINK = true;
+const APP_ICON_PATH = _path.join(__dirname, 'public/icon.png');
+const COMPILE_FLAGS_OUTPUT_TYPE = {'wasm':'o','abi':'g'}
 
-const eos = EOS({
-	chainId: "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",
-	keyProvider: ["5JgyBhAvhfhH4Xo474EV1Zjm9uhEGjWXr62tj17aYUKR36ocWzY","5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","5J5t5Xp9Ug4rwBLRZNLKyXCrAVBHAMWAXeZTgdHFW86BC3qCKbM","5Kay6rDnV1hjLQUwBeEPrfxMwYdAP3gwhLSkYmby7vd7jxGrfx8"],
-	httpEndpoint: 'http://127.0.0.1:8888',
+const eos = eosjs({
+	chainId: CHAIN_ID,
+	keyProvider: PRIVATE_KEYS,
+	httpEndpoint: HTTP_ENDPOINT,
 	expireInSeconds: 60,
 	broadcast: true,
 	verbose: false,
-	sign: true,
-	binaryen
+	sign: true
 });
   
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow, watcher;
+// Global References
+let appIcon, mainWindow, watcher;
 
 function createWindow () {
 	// Create the browser window.
@@ -41,7 +44,6 @@ function createWindow () {
 	// Open the DevTools.
 	mainWindow.webContents.openDevTools()
 
-
 	// Emitted when the window is closed.
 	mainWindow.on('closed', () => {
 	  // Dereference the window object, usually you would store windows
@@ -49,6 +51,17 @@ function createWindow () {
 	  // when you should delete the corresponding element.
 	  mainWindow = null
 	})
+
+	appIcon = new Tray(APP_ICON_PATH);
+
+	const trayMenu = Menu.buildFromTemplate([
+		{
+			label:'Item1',
+			type:'radio'
+		}
+	]);
+
+	appIcon.setContextMenu(trayMenu);
 
 	const menu = Menu.buildFromTemplate([
 		{
@@ -93,69 +106,37 @@ function createWindow () {
 		ignored: /[\/\\]\./,
 		persistent: true
 	});
-
-	function onWatcherReady() {
-		console.info(colors.white('Chokidar is watching directory: /Users/mitch/Contracts/Nautilus/contracts'));
-	}
 	// Declare the listeners of the watcher
-	watcher.on('add', function(path, { size, mtimeMS, birthtimeMs }) {
+	watcher.on('add', function(fullPath, { size, birthtimeMs }) {
 
 		const dirPattern = /(.*\/).*/gi;
-		const pathComponents = dirPattern.exec(path);
-		const fileComponents = path.replace(pathComponents[1],'').split('.');
+		const pathComponents = dirPattern.exec(fullPath);
+		const fileComponents = fullPath.replace(pathComponents[1],'').split('.');
 		
-		const dir = pathComponents[1];
+		const path = pathComponents[1];
 		const name = fileComponents[0];
 		const extension = fileComponents[1];
-		const uid = generateUid(path);
-		// Construct data
-		const data = { uid, name, extension, path:dir, file:fileComponents.join('.'), size };
-		if (mtimeMS) data.modified = mtimeMS;
-		if (birthtimeMs) data.created = birthtimeMs;
-		//store.set(fileComponents[0], existing);
-		updateFile(uid, data);
-	}).on('addDir', function(path) {
-		//console.log('Directory', path, 'has been added');
-	}).on('change', function(path) {
-		const uid = generateUid(path);
-		updateFile(uid, { modified:true });
-		//mainWindow.webContents.send('file:changed', uid);
-		//console.log(colors.cyan("Updated file"),colors.grey(path));
-	}).on('unlink', function(path) {
-		//mainWindow.webContents.send('file:removed', path);
-		//console.log(colors.red("Removed file"),colors.grey(path));
-		const uid = generateUid(path);
+		// Update the file storage
+		store.add(fullPath, { name, extension, path, file:fileComponents.join('.'), size });
+	}).on('addDir', function(fullPath) {
+		//console.log('Directory', fullPath, 'has been added');
+	}).on('change', function(fullPath) {
+		// Update cache and notify render process
+		store.modified(fullPath);
+		mainWindow.webContents.send('file:changed', fullPath);
+	}).on('unlink', function(fullPath) {
+		// Update cache and notify render process
+		const uid = createHash('sha1').update(fullPath).digest('hex');
 		store.delete(uid);
-	}).on('unlinkDir', function(path) {
-		//console.log(colors.red("Removed directory"),colors.grey(path));
+		mainWindow.webContents.send('file:removed', fullPath);
+	}).on('unlinkDir', function(fullPath) {
+		//console.log(colors.red("Removed directory"),colors.grey(fullPath));
 	}).on('error', function(error) {
 		//console.log('Error happened', error);
-	}).on('ready', onWatcherReady);
+	}).on('ready', function() {
+		console.info(colors.cyan('Watching directory: /Users/mitch/Contracts/Nautilus/contracts'));
+	});
 }
-
-function cleanse(obj, schema) {
-	// Should cleanse data props
-	return obj;
-}
-
-function updateFile(uid, data) {
-	data = cleanse(data);
-	const file = store.get(uid, DEFAULT_FILE_DATA);
-	const merged = Object.assign(file, data);
-	store.set(uid, merged);
-}
-
-const DEFAULT_FILE_DATA = {
-	uid:'',
-	name:'',
-	extension:'',
-	path:'',
-	file:'',
-	modified:false,
-	created:false,
-	size:0
-}
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -193,9 +174,21 @@ async function execute(cmd) {
 	});
 }
 
-ipcMain.on('compile:file', (event, { input, output, type }) => {
-	execute(`eosiocpp -${((type === 'wasm')?'o':'g')} ${output} ${input}`).then(({ stdout, stderr }) => {
-		mainWindow.webContents.send('compile:complete', { input, output, type });
+ipcMain.on('compile:contract', (event, { name, type }) => {
+	// Validate arguments
+	if ('string' !== typeof name) throw new Error("Invalid contract name");
+	if (!type || !(type==='wasm'||type==='abi')) throw new Error("Invalid file type");
+
+	// Fetch contract
+	const contract = contracts.get(name);
+	const inputFile = store.get(contract.contract);
+	// Construct file paths
+	const inputPath = inputFile.path+inputFile.file;
+	const outputPath = inputFile.path+inputFile.name+'.'+type;
+	// Run compile command
+	execute(`eosiocpp -${COMPILE_FLAGS_OUTPUT_TYPE[type]} ${outputPath} ${inputPath}`).then(({ stdout, stderr }) => {
+		store.compiled(outputPath);
+		mainWindow.webContents.send('compile:complete', { inputPath, outputPath, type });
 	}).catch((err) => {
 		console.log(colors.red(err));
 	});
@@ -203,15 +196,19 @@ ipcMain.on('compile:file', (event, { input, output, type }) => {
 
 ipcMain.on('deploy:contract', (event, { code, files }) => {
 
-	const promises = files.map(({ type, fullPath }) => {
+	const promises = files.map(({ uid, type, fullPath }) => {
+
+		const timestamp = +new Date;
 		
 		if (type === 'wasm') {
 			const file = fs.readFileSync(fullPath);
 			return eos.setcode(code, 0, 0, file).then(receipt => {
+				store.update(fullPath, {modified:false,deployed:timestamp});
 				mainWindow.webContents.send('deploy:success', fullPath);
 			}).catch(err => {
 				const { code, message, error } = JSON.parse(err);
 				if (error.code === 3160008) {
+					store.update(fullPath, {modified:false,deployed:timestamp});
 					mainWindow.webContents.send('deploy:success', fullPath);
 				} else {
 					console.log(colors.red("ERROR"),colors.yellow("("+code+" : "+message+")"),colors.grey("("+error.code+") "+error.what));
@@ -220,6 +217,7 @@ ipcMain.on('deploy:contract', (event, { code, files }) => {
 		} else if (type === 'abi') {
 			const file = fs.readFileSync(fullPath);
 			return eos.setabi(code, JSON.parse(file)).then(receipt => {
+				store.update(fullPath, {modified:false,deployed:timestamp});
 				mainWindow.webContents.send('deploy:success', fullPath);
 			}).catch(err => {
 				const { code, message, error } = JSON.parse(err);
@@ -240,7 +238,6 @@ ipcMain.on('deploy:contract', (event, { code, files }) => {
 });
 
 ipcMain.on('directory:watch', (event, directory) => {
-
 	const currentPaths = watcher.getWatched();
 	console.log("Watching", Object.keys(currentPaths));
 	watcher.unwatch(Object.keys(currentPaths));
@@ -274,20 +271,26 @@ ipcMain.on('account:load', (event, key) => {
 		if (err) {
 			console.log(colors.red("ERROR"),colors.grey(err));
 		} else {
+			account_names.forEach((name) => {
+				accounts.update(name, { name });
+			});
 			mainWindow.webContents.send('accounts:loaded', account_names);
 		}
 	});
 });
 
-ipcMain.on('account:code', (event, name) => {
-	eos.getCodeHash(name).then((account_name, code_hash) => {
-		console.log(colors.grey("Name"),account_name);
-		console.log(colors.cyan("Code"),code_hash);
-	}).catch(error => {
-		console.log(colors.red("ERROR"),colors.yellow(error));
-	});
+ipcMain.on('contract:create', (event, code) => {
+
+	const contract = contracts.get(code, DEFAULT_CONTRACT_DATA);
+	if (contract) {
+		contract.code = code;
+		contract.name = code;
+	}
+	contracts.set(code, contract);
+	mainWindow.webContents.send('contract:created', contract);
 });
 
-function generateUid(fullPath) {
-	return createHash('sha256').update(fullPath).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
-}
+ipcMain.on('contract:link', (event, { name, type, file }) => {
+	contracts.update(name, { [type]:file });
+	mainWindow.webContents.send('contract:linked', { name, type, file });
+});

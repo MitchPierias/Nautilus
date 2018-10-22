@@ -8,13 +8,13 @@ import Files from './Files';
 import Contracts from './Contracts';
 
 export default function Routes(props) {
-	return(
+	return (
 		<Switch>
 			<Route path="/keys" component={Keys}/>
 			<Route path="/accounts" component={Accounts}/>
 			<Route path="/files" component={Files}/>
 			<Route path="/contracts" component={Contracts}/>
-			<Route component={Files}/>
+			<Route component={Contracts}/>
 		</Switch>
 	)
 }

@@ -1,14 +1,38 @@
 // Modules
 import { ipcRenderer } from 'electron';
+import ElectronStore from 'electron-store';
 // Types
 import {
 	ADD_ACCOUNT,
+	ADD_ACCOUNTS,
 	REMOVE_ALL_ACCOUNTS
-} from './AccountTypes';
+} from '../types/AccountTypes';
 
 import {
 	ADD_CONTRACT
-} from './ContractTypes';
+} from '../types/ContractTypes';
+// Account Database
+const accounts = new ElectronStore({
+	name:'accounts',
+	defaults:{}
+});
+// Contract Database
+const contracts = new ElectronStore({
+	name:'contracts',
+	defaults:{}
+});
+
+export const loadAccounts = () => dispatch => {
+
+	//ipcRenderer.send('account:load', 'EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F');
+	dispatch({ type:ADD_ACCOUNTS,payload:accounts.store });
+
+	ipcRenderer.on('accounts:loaded', (event, accounts) => {
+		accounts.forEach(name => {
+			dispatch({type:ADD_ACCOUNT,payload:{name,code:''}});
+		});
+	});
+}
 
 /**
  * Create Account
@@ -20,11 +44,7 @@ import {
  */
 export const createAccount = name => dispatch => {
 
-	const illegalChars = /[\W\d\_]/gi;
-	if (illegalChars.test(name)) {
-		console.error("Illegal chars in 'createAccount' action");
-		return;
-	}
+	if (isValidAccountName(name)) return console.error("Illegal chars in 'createAccount' action");
 
 	ipcRenderer.send('account:create', name.toLowerCase());
 
@@ -39,25 +59,34 @@ export const createAccount = name => dispatch => {
 	});
 }
 
-export const loadAccounts = () => dispatch => {
-
-	ipcRenderer.send('account:load', 'EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F');
-
-	ipcRenderer.on('accounts:loaded', (event, accounts) => {
-		accounts.forEach(name => {
-			dispatch({type:ADD_ACCOUNT,payload:{uuid:name,name,code:''}});
-		});
-	});
-}
-
 export const convertAccount = code => dispatch => {
 
 	console.log("Convert account '"+code+"' to contract");
 
-	dispatch({type:ADD_CONTRACT,payload:{code,contract:'926A66B2'}});
+	ipcRenderer.send('contract:create', code);
+
+	ipcRenderer.on('contract:created', (event, contract) => {
+		dispatch({
+			type:ADD_CONTRACT,
+			payload:contract
+		});
+	});
 }
 
 export const getCode = name => dispatch => {
 
 	ipcRenderer.send('account:code', name);
+}
+
+/**
+ * Validate Account Name
+ * @desc Determines if the provided string is a valid EOS account_name
+ * @author [Mitch Pierias](github.com/MitchPierias)
+ * @param account_name <String> Account Name String
+ * @version 1.0.0
+ * @return isValidAccountName <Boolean> Validation result
+ */
+function isValidAccountName(account_name) {
+	const illegalChars = /[\W\d\_]/gi;
+	return !illegalChars.test(account_name);
 }

@@ -89,7 +89,7 @@ export default class Accounts extends React.Component {
 		const keyList = this.state.pairs.map((key, idx) => (<option key={idx} value={key.public}>{key.public}</option>))
 
 		return (
-			<aside style={{flex:"3 10",backgroundColor:"rgba(33,33,33,0.8)",color:"#EDEDE5",height:"100%"}}>
+			<aside style={{flex:"3 10",color:"#EDEDE5",height:"100%"}}>
 				<h2>Keys</h2>
 				<select>
 					{keyList}

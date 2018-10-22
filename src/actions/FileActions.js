@@ -16,23 +16,33 @@ import {
 	DEPLOYED_FILE,
 	MODIFY_FILE,
 	ADD_FILES
-} from './FileTypes';
+} from '../types/FileTypes';
 
-import {
-	COMPILED_CONTRACT,
-	REFRESH_CONTRACT,
-	DEPLOYED_CONTRACT
-} from './ContractTypes';
-
-const HASH_LENGTH = 8;
-
+/**
+ * Load Files
+ * @desc Loads the cached files into memory
+ * @author [Mitch Pierias](github.com/MitchPierias)
+ * @version 0.1.0
+ * @return
+ */
 export const loadFiles = () => dispatch => {
-	
+	// Add cached files
 	dispatch({ type:ADD_FILES,payload:db.store });
+	// Subscribe to file changes
+	ipcRenderer.on('file:changed', (event, fullPath) => {
+		
+		const uid = generateUid(fullPath);
+		const file = db.get(uid);
+		dispatch({ type:MODIFY_FILE,payload:file });
 
-	ipcRenderer.on('file:changed', (event, uid) => {
-		console.log("Modified",uid)
-		dispatch({ type:MODIFY_FILE,payload:uid});
+		let updatedFileNotification = new Notification('File changed', {
+			body:"The file at '"+fullPath+"' was recently changed"
+		});
+	});
+
+	ipcRenderer.on('file:removed', (event, fullPath) => {
+		const uid = generateUid(fullPath);
+		dispatch({ type:REMOVE_FILE,payload:{ uid } });
 	});
 }
 
@@ -69,10 +79,10 @@ export const watchDirectory = directory => dispatch => {
 		}});
 	});
 
-	ipcRenderer.on('file:changed', (event, uid) => {
+	/* ipcRenderer.on('file:changed', (event, uid) => {
 		console.log("Modified",uid)
 		dispatch({ type:MODIFY_FILE,payload:uid});
-	});
+	}); */
 
 	ipcRenderer.on('file:removed', (event, path) => {
 		const uid = generateUid(path);
@@ -80,45 +90,6 @@ export const watchDirectory = directory => dispatch => {
 	});
 }
 
-export const compileFile = (file, type) => dispatch => {
-	
-	const input = file.path+file.name+'.'+file.extension;
-	const output = file.path+file.name+'.'+type;
-
-	console.log("Compile",input)
-
-	ipcRenderer.send('compile:file', { input, output, type });
-
-	ipcRenderer.on('compile:complete', (event, { input, output, type }) => {
-		const code = file.name;
-		const outputID = generateUid(output);
-		console.log("Compiled",code,"with output",outputID,"path",output);
-		// Dispatch complete notification
-		dispatch({type:COMPILED_CONTRACT,payload:{code,type,value:outputID}});
-		dispatch({type:COMPILED_FILE,payload:{uid:outputID,type,path:output}});
-	});
-}
-
-export const deployFile = (code, wasm, abi) => dispatch => {
-
-	const wasmPath = wasm.path+wasm.name+'.'+wasm.extension;
-	const abiPath = abi.path+abi.name+'.'+abi.extension;
-
-	console.log("Deploy",wasmPath)
-
-	ipcRenderer.send('deploy:contract', { code, files:[{type:'wasm',fullPath:wasmPath},{type:'abi',fullPath:abiPath}] });
-
-	ipcRenderer.on('deploy:success', (event, fullPath) => {
-		const uid = generateUid(fullPath);
-		console.log("Deployed",uid);
-		dispatch({type:DEPLOYED_FILE,payload:uid});
-	});
-
-	ipcRenderer.on('deploy:complete', (event, code) => {
-		dispatch({type:DEPLOYED_CONTRACT,payload:code});
-	});
-}
-
 function generateUid(fullPath) {
-	return createHash('sha256').update(fullPath).digest('hex').substr(0,HASH_LENGTH).toUpperCase();
+	return createHash('sha1').update(fullPath).digest('hex');
 }
