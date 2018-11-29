@@ -11,8 +11,7 @@ const ElectronStore = require('electron-store');
 const Database = require('./FileStore');
 const createHash = require('create-hash');
 
-const store = new Database.files();
-const { accounts, contracts } = Database;
+const { files, accounts, contracts, settings } = Database;
 
 const keys = ["EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F"];
 const HTTP_ENDPOINT = 'http://127.0.0.1:8888';
@@ -31,7 +30,10 @@ const eos = eosjs({
 	verbose: false,
 	sign: true
 });
-  
+
+eos.deleteauth();
+eos.unlinkauth();
+eos.linkauth();
 // Global References
 let appIcon, mainWindow, watcher;
 
@@ -102,7 +104,7 @@ function createWindow () {
 
 	Menu.setApplicationMenu(menu);
 
-	watcher = chokidar.watch('/Users/mitch/Contracts/Nautilus/contracts', {
+	watcher = chokidar.watch(settings.get('directory'), {
 		ignored: /[\/\\]\./,
 		persistent: true
 	});
@@ -117,24 +119,24 @@ function createWindow () {
 		const name = fileComponents[0];
 		const extension = fileComponents[1];
 		// Update the file storage
-		store.add(fullPath, { name, extension, path, file:fileComponents.join('.'), size });
+		files.add(fullPath, { name, extension, path, file:fileComponents.join('.'), size });
 	}).on('addDir', function(fullPath) {
 		//console.log('Directory', fullPath, 'has been added');
 	}).on('change', function(fullPath) {
 		// Update cache and notify render process
-		store.modified(fullPath);
+		files.modified(fullPath);
 		mainWindow.webContents.send('file:changed', fullPath);
 	}).on('unlink', function(fullPath) {
 		// Update cache and notify render process
 		const uid = createHash('sha1').update(fullPath).digest('hex');
-		store.delete(uid);
+		files.delete(uid);
 		mainWindow.webContents.send('file:removed', fullPath);
 	}).on('unlinkDir', function(fullPath) {
 		//console.log(colors.red("Removed directory"),colors.grey(fullPath));
 	}).on('error', function(error) {
 		//console.log('Error happened', error);
 	}).on('ready', function() {
-		console.info(colors.cyan('Watching directory: /Users/mitch/Contracts/Nautilus/contracts'));
+		console.info(colors.cyan('Watching directory: '+settings.get('directory')));
 	});
 }
 // This method will be called when Electron has finished
@@ -181,13 +183,13 @@ ipcMain.on('compile:contract', (event, { name, type }) => {
 
 	// Fetch contract
 	const contract = contracts.get(name);
-	const inputFile = store.get(contract.contract);
+	const inputFile = files.get(contract.contract);
 	// Construct file paths
 	const inputPath = inputFile.path+inputFile.file;
 	const outputPath = inputFile.path+inputFile.name+'.'+type;
 	// Run compile command
 	execute(`eosiocpp -${COMPILE_FLAGS_OUTPUT_TYPE[type]} ${outputPath} ${inputPath}`).then(({ stdout, stderr }) => {
-		store.compiled(outputPath);
+		files.compiled(outputPath);
 		mainWindow.webContents.send('compile:complete', { inputPath, outputPath, type });
 	}).catch((err) => {
 		console.log(colors.red(err));
@@ -203,12 +205,12 @@ ipcMain.on('deploy:contract', (event, { code, files }) => {
 		if (type === 'wasm') {
 			const file = fs.readFileSync(fullPath);
 			return eos.setcode(code, 0, 0, file).then(receipt => {
-				store.update(fullPath, {modified:false,deployed:timestamp});
+				files.update(fullPath, {modified:false,deployed:timestamp});
 				mainWindow.webContents.send('deploy:success', fullPath);
 			}).catch(err => {
 				const { code, message, error } = JSON.parse(err);
 				if (error.code === 3160008) {
-					store.update(fullPath, {modified:false,deployed:timestamp});
+					files.update(fullPath, {modified:false,deployed:timestamp});
 					mainWindow.webContents.send('deploy:success', fullPath);
 				} else {
 					console.log(colors.red("ERROR"),colors.yellow("("+code+" : "+message+")"),colors.grey("("+error.code+") "+error.what));
@@ -217,7 +219,7 @@ ipcMain.on('deploy:contract', (event, { code, files }) => {
 		} else if (type === 'abi') {
 			const file = fs.readFileSync(fullPath);
 			return eos.setabi(code, JSON.parse(file)).then(receipt => {
-				store.update(fullPath, {modified:false,deployed:timestamp});
+				files.update(fullPath, {modified:false,deployed:timestamp});
 				mainWindow.webContents.send('deploy:success', fullPath);
 			}).catch(err => {
 				const { code, message, error } = JSON.parse(err);
@@ -237,12 +239,13 @@ ipcMain.on('deploy:contract', (event, { code, files }) => {
 	});
 });
 
-ipcMain.on('directory:watch', (event, directory) => {
+ipcMain.on('directory:watch', (event, fullPath) => {
 	const currentPaths = watcher.getWatched();
 	console.log("Watching", Object.keys(currentPaths));
 	watcher.unwatch(Object.keys(currentPaths));
-	console.log("Cleared paths, add", directory)
-	watcher.add(directory);
+	settings.set('directory',fullPath);
+	console.log("Cleared paths, add", settings.get('directory'))
+	watcher.add(fullPath);
 });
 
 ipcMain.on('account:create', (event, name) => {
@@ -265,17 +268,31 @@ ipcMain.on('account:create', (event, name) => {
 	});
 });
 
-ipcMain.on('account:load', (event, key) => {
-
-	eos.getKeyAccounts(keys[0], (err, { account_names }) => {
+ipcMain.on('accounts:load', (event, public_key) => {
+	// Cleanse arguments
+	if ('string' !== typeof public_key) public_key = keys[0];
+	// Fetch accounts for public key
+	eos.getKeyAccounts(public_key, (err, { account_names }) => {
 		if (err) {
 			console.log(colors.red("ERROR"),colors.grey(err));
 		} else {
+			// Update cache
+			accounts.updateCache(account_names);
+
 			account_names.forEach((name) => {
 				accounts.update(name, { name });
 			});
 			mainWindow.webContents.send('accounts:loaded', account_names);
 		}
+	});
+});
+
+ipcMain.on('accounts:get', (event, name) => {
+
+	eos.getAccount(name).then(account => {
+		console.log(account);
+	}).catch(err => {
+		console.log(colors.red(err));
 	});
 });
 

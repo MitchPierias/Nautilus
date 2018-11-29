@@ -1,12 +1,11 @@
 import React from 'react';
 import { object } from 'prop-types';
 import { connect } from 'react-redux';
-import EOS, { modules } from 'eosjs';
-const { ecc } = modules;
 // Components
 import AccountDetail from '../components/AccountDetail';
+import AccountDetailCreate from '../components/AccountDetailCreate';
 // Actions
-import { loadAccounts, createAccount, getCode } from '../actions/AccountActions';
+import { loadAccounts, getCode } from '../actions/AccountActions';
 
 function mapStateToProps({ accounts }) {
 	return { accounts };
@@ -14,14 +13,12 @@ function mapStateToProps({ accounts }) {
 
 const mapDispatchToProps = {
 	loadAccounts,
-	createAccount,
 	getCode
 }
 
 class Accounts extends React.Component {
 
 	state = {
-		name:null,
 		selected:false
 	}
 
@@ -38,39 +35,8 @@ class Accounts extends React.Component {
 		this.props.getCode('game')
 	}
 
-	/**
-	 * Name Field Changed
-	 * @desc Fires when the account `name` input value changes
-	 * @author [Mitch Pierias](github.com/MitchPierias)
-	 * @param event <onchange> Input value onchange event
-	 * @version 1.0.0
-	 * @return
-	 */
-	didChangeNameField(event) {
-		const name = event.target.value;
-		this.setState({ name });
-	}
-
-	didSelectCreateAccount(event) {
-		console.log("Create account")
-		return;
-		event.preventDefault();
-		const illegalChars = /[\W\d\_]/gi;
-		const { name } = this.state;
-		if (name && 'string' === typeof name && name.length > 0) {
-			if (illegalChars.test(name)) {
-				alert("Illegal chars");
-			} else {
-				this.props.createAccount(name.toLowerCase());
-				event.target.value = '';
-			}
-		} else {
-			alert("A valid name is required");
-		}
-	}
-
 	didSelectAccount(name) {
-		if (name === this.state.selected) name = false;
+		if (name === this.state.selected || name === '') name = false;
 		this.setState({ selected:name });
 	}
 	
@@ -78,19 +44,20 @@ class Accounts extends React.Component {
 
 		const { selected } = this.state;
 
-		const accountList = Object.values(this.props.accounts).map((account, idx) => 
-			<AccountListItem key={idx} name={account.name} selected={(selected===account.name)} onClick={this.didSelectAccount.bind(this)}/>
-		);
-
 		return (
 			<div style={{flex:"3 10",color:"#EDEDE5",height:"100%",display:"flex",flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",alignContent:"stretch",padding:"12px",margin:0}}>
 				<aside style={{flex:"3 2",backgroundColor:"transparent",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"stretch",alignContent:"flex-start",border:"none",borderRight:"1px solid #212121",padding:0,margin:0}}>
+					<AccountListItem title="+ Create Account" name={false} onClick={this.didSelectAccount.bind(this)} selected={!(selected && selected !== '')}/>
 					{Object.values(this.props.accounts).map((account, idx) => {
-						return <AccountListItem key={idx} name={account.name} onClick={this.didSelectAccount.bind(this)} selected={(this.state.selected && this.state.selected === account.name)} notifications={((idx==1)?3:false)}/>
+						return <AccountListItem key={idx} title={account.name} name={account.name} onClick={this.didSelectAccount.bind(this)} selected={(selected && selected === account.name)} notifications={((idx==1)?3:false)}/>
 					})}
-					<AccountListItem name="Create Contract" onClick={this.didSelectCreateAccount.bind(this)} selected={false}/>
 				</aside>
-				<AccountDetail name={this.state.selected}/>
+				<section style={{flex:"8 2",backgroundColor:"transparent",color:"#BABABA",padding:"12px"}}>
+					{(selected && selected !== '')
+						? <AccountDetail name={selected}/>
+						: <AccountDetailCreate/>
+					}
+				</section>
 			</div>
 		)
 	}
@@ -106,7 +73,7 @@ function AccountListItem(props) {
 		color:(props.selected)?"#E0E0E0":"#BABABA",
 		display:"flex",
 		flexDirection:"row",
-		justifyContent:"flex-start",
+		justifyContent:"space-between",
 		alignItems:"center",
 		alignContent:"stretch",
 		cursor:"pointer",
@@ -115,17 +82,12 @@ function AccountListItem(props) {
 		borderLeftStyle:"solid",
 		borderLeftColor:statusColor,
 		margin:"0px 4px",
-		padding:"6px 16px",
-		display:"flex",
-		flexDirection:"row",
-		justifyContent:"space-between",
-		alignItems:"stretch",
-		alignContent:"stretch"
+		padding:"6px 16px"
 	}
 
 	return (
 		<div style={accountListItemStyle} onClick={props.onClick.bind(this, props.name)}>
-			<h3 style={{fontSize:"1em",color:(props.selected)?"#BDBDBD":"#747579"}}>{props.name.toCamelCase()}</h3>
+			<h3 style={{fontSize:"1em",color:(props.selected)?"#BDBDBD":"#747579"}}>{(props.title||'').toCamelCase()}</h3>
 			<span style={{fontSize:"0.7em",fontWeight:600,backgroundColor:"transparent",color:"#ECD1A2"}}>{props.notifications}</span>
 		</div>
 	)

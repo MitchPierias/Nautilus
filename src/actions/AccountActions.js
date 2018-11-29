@@ -24,7 +24,7 @@ const contracts = new ElectronStore({
 
 export const loadAccounts = () => dispatch => {
 
-	//ipcRenderer.send('account:load', 'EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F');
+	ipcRenderer.send('accounts:load', 'EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F');
 	dispatch({ type:ADD_ACCOUNTS,payload:accounts.store });
 
 	ipcRenderer.on('accounts:loaded', (event, accounts) => {
@@ -43,8 +43,11 @@ export const loadAccounts = () => dispatch => {
  * @return
  */
 export const createAccount = name => dispatch => {
-
-	if (isValidAccountName(name)) return console.error("Illegal chars in 'createAccount' action");
+	// Validate arguments
+	if (!isValidAccountName(name)) {
+		console.error("Illegal chars in 'createAccount' action");
+		return;
+	}
 
 	ipcRenderer.send('account:create', name.toLowerCase());
 
@@ -71,6 +74,11 @@ export const convertAccount = code => dispatch => {
 			payload:contract
 		});
 	});
+}
+
+export const getAccount = name => dispatch => {
+
+	ipcRenderer.send('accounts:get', name);
 }
 
 export const getCode = name => dispatch => {

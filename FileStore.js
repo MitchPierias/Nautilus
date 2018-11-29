@@ -28,7 +28,7 @@ const DEFAULT_FILE_DATA = {
 class FileStore extends ElectronStore {
 	
 	constructor() {
-		super(CONFIG);
+		super({name:'files',defaults:{}});
 	}
 
 	async add(path, data, shouldLink = false) {
@@ -129,26 +129,46 @@ function linkContract(account_name, data = {}) {
  * ACCOUNTS
  */
 
-const accounts = new ElectronStore({
-	name:'accounts',
-	defaults:{}
-});
-
 const DEFAULT_ACCOUNT_DATA = {
 	name:'',
 	code:'',
 	contract:false,
 }
 
-function updateAccount(account_name, data = {}) {
-	data = cleanse(data);
-	const user = accounts.get(account_name, DEFAULT_ACCOUNT_DATA);
-	const merged = Object.assign(user, data);
-	accounts.set(account_name, merged);
+class AccountStore extends ElectronStore {
+
+	constructor() {
+		super({name:'accounts',defaults:{}});
+	}
+
+	update(account_name, data = {}) {
+		data = cleanse(data);
+		const user = this.get(account_name, DEFAULT_ACCOUNT_DATA);
+		const merged = Object.assign(user, data);
+		this.set(account_name, merged);
+	}
+
+	updateCache(account_names=[]) {
+		let cachedAccounts = this.store;
+		Object.values(cachedAccounts).forEach((account) => {
+			const name = account.name;
+			if (account_names.indexOf(name) < 0) {
+				this.delete(name);
+			}
+		});
+	}
+}
+
+class SettingStore extends ElectronStore {
+
+	constructor() {
+		super({name:'settings',defaults:{}});
+	}
 }
 
 module.exports = {
-	files:FileStore,
+	files: new FileStore,
 	contracts,
-	accounts
+	accounts: new AccountStore,
+	settings: new SettingStore
 };

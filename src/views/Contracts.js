@@ -24,7 +24,6 @@ class Contracts extends React.Component {
 
 	componentWillMount() {
 		// Everytime we view or reload this component, we start a new observer
-		this.props.watchDirectory('/Users/mitch/Contracts/Nautilus/contracts');
 		this.props.loadContracts();
 	}
 
@@ -45,7 +44,7 @@ class Contracts extends React.Component {
 		return (
 			<section style={{flex:"10 5",display:"flex",flexDirection:"row",justifyContent:"space-around",alignItems:"stretch",alignContent:"stretch",padding:"12px"}}>
 				<aside style={{flex:"3 2",backgroundColor:"transparent",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"stretch",alignContent:"flex-start",border:"none",borderRight:"1px solid #212121",padding:0,margin:0}}>
-					<ContractListItem name="+ Create Contract" onClick={this.didSelectCreateContract.bind(this)} selected={false}/>
+					<ContractListItem name="+ Create Contract" onClick={this.didSelectCreateContract.bind(this)} selected={!(this.state.name||this.state.name==='')}/>
 					{Object.values(this.props.contracts).map((contract, idx) => {
 						return <ContractListItem key={idx} name={contract.name} modified={contract.modified} onClick={this.didSelectContract.bind(this, contract)} selected={(this.state.name && this.state.name === contract.name)} notifications={((idx==1)?3:false)}/>
 					})}
