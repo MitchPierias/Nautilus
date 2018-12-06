@@ -6,34 +6,16 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const crypto = require('crypto');
 const colors = require('colors');
-const eosjs = require('eosjs');
 const ElectronStore = require('electron-store');
-const Database = require('./FileStore');
+const Database = require('./api/stores/FileStore');
 const createHash = require('create-hash');
 
 const { files, accounts, contracts, settings } = Database;
 
-const keys = ["EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F"];
-const HTTP_ENDPOINT = 'http://127.0.0.1:8888';
-const CHAIN_ID = 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f';
-const PRIVATE_KEYS = ["5JgyBhAvhfhH4Xo474EV1Zjm9uhEGjWXr62tj17aYUKR36ocWzY","5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3","5J5t5Xp9Ug4rwBLRZNLKyXCrAVBHAMWAXeZTgdHFW86BC3qCKbM","5Kay6rDnV1hjLQUwBeEPrfxMwYdAP3gwhLSkYmby7vd7jxGrfx8"];
+const keys = [process.env.EOS_PUBLIC_KEY];
 const AUTO_LINK = true;
 const APP_ICON_PATH = _path.join(__dirname, 'public/icon.png');
 const COMPILE_FLAGS_OUTPUT_TYPE = {'wasm':'o','abi':'g'}
-
-const eos = eosjs({
-	chainId: CHAIN_ID,
-	keyProvider: PRIVATE_KEYS,
-	httpEndpoint: HTTP_ENDPOINT,
-	expireInSeconds: 60,
-	broadcast: true,
-	verbose: false,
-	sign: true
-});
-
-eos.deleteauth();
-eos.unlinkauth();
-eos.linkauth();
 // Global References
 let appIcon, mainWindow, watcher;
 
@@ -250,49 +232,49 @@ ipcMain.on('directory:watch', (event, fullPath) => {
 
 ipcMain.on('account:create', (event, name) => {
 
-	const creator = "eosio";
-	const ownerKey = keys[0];
-	const activeKey = keys[0];
 
-	eos.newaccount({
-		creator: creator,
-		name: name,
-		owner: ownerKey,
-		active: activeKey
-	}, (error, receipt) => {
-		if (error) {
-			mainWindow.webContents.send('account:exists', name);
-		} else {
-			mainWindow.webContents.send('account:created', name);
-		}
-	});
 });
+
+const AccountService = require('./api/services/AccountService');
 
 ipcMain.on('accounts:load', (event, public_key) => {
 	// Cleanse arguments
 	if ('string' !== typeof public_key) public_key = keys[0];
 	// Fetch accounts for public key
-	eos.getKeyAccounts(public_key, (err, { account_names }) => {
-		if (err) {
-			console.log(colors.red("ERROR"),colors.grey(err));
-		} else {
-			// Update cache
-			accounts.updateCache(account_names);
-
-			account_names.forEach((name) => {
-				accounts.update(name, { name });
-			});
-			mainWindow.webContents.send('accounts:loaded', account_names);
-		}
+	AccountService.all(public_key).then(account_names => {
+		// Remap names
+		account_names = account_names.map(name => { return {name,code:'',id:name} });
+		// Update database
+		accounts.syncCache(account_names);
+		account_names.forEach(account => accounts.update(account));
+		// Notify interface
+		mainWindow.webContents.send('accounts:loaded', account_names);
+	}).catch(err => {
+		console.log(colors.red("ERROR"),colors.grey(err));
 	});
 });
 
-ipcMain.on('accounts:get', (event, name) => {
-
-	eos.getAccount(name).then(account => {
-		console.log(account);
+ipcMain.on('account:get', (event, name) => {
+	// Fetch accounts for public key
+	AccountService.getAccount(name).then(account => {
+		// Update database
+		//accounts.update(account);
+		// Notify interface
+		mainWindow.webContents.send('account:received', account);
 	}).catch(err => {
-		console.log(colors.red(err));
+		console.log(colors.red("ERROR"),colors.grey(err));
+	});
+});
+
+ipcMain.on('code:get', (event, name) => {
+	// Fetch accounts for public key
+	AccountService.getCode(name).then(contract => {
+		// Update database
+		accounts.update(contract);
+		// Notify interface
+		mainWindow.webContents.send('code:received', contract.code);
+	}).catch(err => {
+		console.log(colors.red("ERROR"),colors.grey(err));
 	});
 });
 

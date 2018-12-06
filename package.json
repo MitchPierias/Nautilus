@@ -15,8 +15,9 @@
     "chokidar": "^2.0.4",
     "create-hash": "^1.2.0",
     "crypto": "^1.0.1",
+    "dotenv": "^6.1.0",
     "electron-store": "^2.0.0",
-    "eosjs": "^16.0.7",
+    "eosjs": "^20.0.0-beta2",
     "path": "^0.12.7",
     "react": "^16.5.x",
     "react-dom": "^16.5.x",
@@ -27,7 +28,9 @@
     "react-router-dom": "^4.3.x",
     "react-spring": "^5.8.0",
     "redux": "^3.6.0",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "request": "^2.88.0",
+    "text-encoding": "^0.7.0"
   },
   "devDependencies": {
     "babel-core": "^6.24.0",
