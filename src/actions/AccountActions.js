@@ -11,27 +11,18 @@ import {
 import {
 	ADD_CONTRACT
 } from '../types/ContractTypes';
-// Account Database
-const accounts = new ElectronStore({
-	name:'accounts',
-	defaults:{}
-});
-// Contract Database
-const contracts = new ElectronStore({
-	name:'contracts',
-	defaults:{}
-});
 
+/**
+ * Load Accounts
+ * @desc Triggers the main process too load accounts and update the application store
+ * @author [Mitch Pierias](github.com/MitchPierias)
+ * @version 1.0.0
+ */
 export const loadAccounts = () => dispatch => {
 
-	ipcRenderer.send('accounts:load', 'EOS5vCdftk4hxj5ygrH6ZK8jkgoo1sm2JoppKvikATAN74b9Bfs2F');
-	dispatch({ type:ADD_ACCOUNTS,payload:accounts.store });
+	ipcRenderer.send('accounts:load', process.env.EOS_PUBLIC_KEY);
 
-	ipcRenderer.on('accounts:loaded', (event, accounts) => {
-		accounts.forEach(name => {
-			dispatch({type:ADD_ACCOUNT,payload:{name,code:''}});
-		});
-	});
+	ipcRenderer.on('accounts:loaded', (event, accounts) => dispatch({ type:ADD_ACCOUNTS,payload:accounts }));
 }
 
 /**
@@ -48,6 +39,8 @@ export const createAccount = name => dispatch => {
 		console.error("Illegal chars in 'createAccount' action");
 		return;
 	}
+
+	const account_name = name.toLowerCase();
 
 	ipcRenderer.send('account:create', name.toLowerCase());
 
@@ -76,14 +69,30 @@ export const convertAccount = code => dispatch => {
 	});
 }
 
+/**
+ * Get Account
+ * @desc Fetches account data for the account with the specified name
+ * @author [Mitch Pierias](github.com/MitchPierias)
+ * @param name <String> Account name
+ * @version 1.0.0
+ * @return
+ */
 export const getAccount = name => dispatch => {
 
-	ipcRenderer.send('accounts:get', name);
+	ipcRenderer.send('account:get', name.toLowerCase());
+
+	ipcRenderer.on('account:received', (event, { name, permissions, cpu, ram }) => {
+		dispatch({ type:ADD_ACCOUNT,payload:{uuid:name,name,code:'',permissions,cpu,ram} });
+	});
 }
 
 export const getCode = name => dispatch => {
 
-	ipcRenderer.send('account:code', name);
+	ipcRenderer.send('code:get', name.toLowerCase());
+
+	ipcRenderer.on('code:received', (event, code) => {
+		console.log("Recevied code",code,"for contract",name);
+	});
 }
 
 /**
