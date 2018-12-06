@@ -3,7 +3,7 @@ import { object } from 'prop-types';
 import { connect } from 'react-redux';
 // Components
 import AccountDetail from '../components/AccountDetail';
-import AccountDetailCreate from '../components/AccountDetailCreate';
+import AccountDetailCreate from '../components/Account/AccountCreate';
 // Actions
 import { loadAccounts, getCode } from '../actions/AccountActions';
 
@@ -32,7 +32,6 @@ class Accounts extends React.Component {
 
 	componentWillMount() {
 		this.props.loadAccounts();
-		this.props.getCode('game')
 	}
 
 	didSelectAccount(name) {

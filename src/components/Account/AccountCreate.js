@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 // Actions
-import { createAccount } from '../actions/AccountActions';
+import { createAccount } from '../../actions/AccountActions';
 
 const mapDispatchToProps = {
 	createAccount

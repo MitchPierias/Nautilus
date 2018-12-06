@@ -7,14 +7,14 @@ import store from './reducers/index';
 import './index.css';
 // Components
 import Navigation from './components/Navigation.js';
-import Routes from './views';
+import Controllers from './views';
 
 const App = (
 	<Provider store={store}>
 		<Router basename="/">
 			<div style={{position:"absolute",width:"100%",height:"100%",display:"flex",flexDirection:"column",justifyContent:"flex-start",alignItems:"stretch",alignContent:"stretch",margin:0,padding:0}}>
 				<Route component={Navigation}/>
-				<Routes/>
+				<Controllers/>
 			</div>
 		</Router>
 	</Provider>
