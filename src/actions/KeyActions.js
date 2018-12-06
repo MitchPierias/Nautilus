@@ -1,6 +1,4 @@
 import { ipcRenderer, remote } from 'electron';
-import EOS, { modules } from 'eosjs';
-const { ecc } = modules;
 
 /**
  * Generate Key Pair
@@ -12,6 +10,7 @@ const { ecc } = modules;
  * @return seeds <Array> Array of generated seeds
  */
 export const generateKeyPair = event => dispatch => {
+	/*
 	event.preventDefault();
 	let pairs = this.state.pairs;
 	ecc.randomKey();
@@ -21,4 +20,5 @@ export const generateKeyPair = event => dispatch => {
 	}
 	pairs.push(keyPair);
 	this.setState({ pairs, ownerKey:keyPair.public, activeKey:keyPair.public });
+	*/
 }

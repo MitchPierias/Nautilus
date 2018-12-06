@@ -1,6 +1,4 @@
 import React from 'react';
-import EOS, { modules } from 'eosjs';
-const { ecc } = modules;
 
 const listStyle = {
 	listStyle:"none",
