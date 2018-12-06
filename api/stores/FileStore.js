@@ -141,21 +141,21 @@ class AccountStore extends ElectronStore {
 		super({name:'accounts',defaults:{}});
 	}
 
-	update(account_name, data = {}) {
-		data = cleanse(data);
-		const user = this.get(account_name, DEFAULT_ACCOUNT_DATA);
-		const merged = Object.assign(user, data);
-		this.set(account_name, merged);
+	update(account) {
+		const user = this.get(account.name, DEFAULT_ACCOUNT_DATA);
+		const merged = Object.assign(user, account);
+		this.set(account.name, merged);
 	}
 
-	updateCache(account_names=[]) {
+	syncCache(account_names=[]) {
 		let cachedAccounts = this.store;
-		Object.values(cachedAccounts).forEach((account) => {
-			const name = account.name;
-			if (account_names.indexOf(name) < 0) {
+		/*
+		account_names.forEach({ name } => {
+			if (!cachedAccounts[name]) {
 				this.delete(name);
 			}
 		});
+		*/
 	}
 }
 
