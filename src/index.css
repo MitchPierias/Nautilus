@@ -22,6 +22,14 @@ body {
 	-ms-overflow-style: scrollbar;
 	-webkit-user-select: none;
 	-webkit-app-region:drag;
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: stretch;
+	align-content: stretch;
+	margin: 0;
+	padding: 0;
 }
 /** Button window dragging fix **/
 input[type="submit"],
