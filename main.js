@@ -14,7 +14,7 @@ const { files, accounts, contracts, settings } = Database;
 
 const keys = [process.env.EOS_PUBLIC_KEY];
 const AUTO_LINK = true;
-const APP_ICON_PATH = _path.join(__dirname, 'public/icon.png');
+const APP_ICON_PATH = _path.join(__dirname, 'assets/icon.png');
 const COMPILE_FLAGS_OUTPUT_TYPE = {'wasm':'o','abi':'g'}
 // Global References
 let appIcon, mainWindow, watcher;
@@ -24,7 +24,7 @@ function createWindow () {
 	mainWindow = new BrowserWindow({width:1000,height:700,minWidth:500,minHeight:600});
 
 	// and load the index.html of the app.
-	mainWindow.loadURL(`file://${__dirname}/public/index.html`);
+	mainWindow.loadURL('http://localhost:9000'); // `file://${__dirname}/public/index.html`
 	// Open the DevTools.
 	mainWindow.webContents.openDevTools()
 

@@ -3,13 +3,14 @@
   "author": "Mitch Pierias",
   "description": "EOS Management",
   "repository": "https://github.com/MitchPierias/Nautilus",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": false,
   "main": "main.js",
   "homepage": "./",
   "scripts": {
-    "start": "webpack-dev-server",
-    "electron": "electron ."
+    "start": "electron .",
+    "start:dev": "webpack-dev-server --env development --progress",
+    "build": "webpack --env production"
   },
   "dependencies": {
     "chokidar": "^2.0.4",
@@ -35,6 +36,8 @@
   "devDependencies": {
     "babel-core": "^6.24.0",
     "babel-loader": "^6.4.1",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "babel-preset-es2015": "^6.24.0",
     "babel-preset-es2016": "^6.24.1",
     "babel-preset-react": "^6.23.0",
@@ -42,8 +45,33 @@
     "css-loader": "^1.0.0",
     "css-modules": "^0.3.0",
     "electron": "~>1.8.x",
+    "electron-builder": "^20.38.2",
+    "html-webpack-plugin": "^3.2.0",
     "style-loader": "^0.23.0",
-    "webpack": "^2.3.2",
+    "webpack": "^3.12.0",
+    "webpack-cli": "^2.1.5",
     "webpack-dev-server": "^2.4.2"
-  }
+  },
+  "build": {
+    "productName": "Nautilus",
+    "appId": "com.nautilus.app",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "build/**/*",
+      "assets/**/*",
+      "!dist/**/*",
+      "!src/**/*",
+      "node_modules/**/*"
+    ]
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }

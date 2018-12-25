@@ -2,6 +2,18 @@ const webpack = require('webpack');
 const dotenv = require('dotenv');
 const path = require('path');
 const fs = require('fs');
+const HtmlWebPackPlugin = require("html-webpack-plugin");
+
+/**
+ * HTML Webpack Plugin
+ * @desc Configuration for building the HTML page
+ * @note Some props are injected and some are configuration (rendering) settings
+ */
+const htmlPlugin = new HtmlWebPackPlugin({
+	title: "Nautilus",
+	template: path.resolve(__dirname,'src/index.html'),
+	filename: "index.html"
+});
 
 const nodeModules = {};
 
@@ -11,6 +23,9 @@ fs.readdirSync('node_modules').filter(function(x) {
 	nodeModules[mod] = 'commonjs ' + mod;
 });
 
+/**
+ * Webpack Configuration
+ */
 module.exports = () => {
 	// Load .env file
 	const env = dotenv.config().parsed;
@@ -22,47 +37,47 @@ module.exports = () => {
 
 	return {
 		externals: nodeModules,
-		entry: ['./src/index.js'],
-		target: 'node',
+		entry: ['babel-polyfill','./src/index.js'],
+		target: 'electron-renderer',
 		output: {
-			path: __dirname,
+			path: path.resolve(__dirname,'build'),
 			publicPath: '/',
 			filename: 'bundle.js'
 		},
 		module: {
-			loaders: [
+			rules: [
 				{
+					test: /\.js$/,
 					exclude: [
 						/node_modules/,
-						/.json?/
+						/.json$/
 					],
 					loader: 'babel-loader',
 					query: {
-						presets: ['react', 'es2016', 'stage-1']
+						presets: ['env','react','es2015','stage-1']
 					}
 				}, {
-					test: /\.css$/,
-					loader: 'style-loader'
-				}, {
-					test: /\.css$/,
-					loader: 'css-loader',
-					query: {
-						modules: true,
-						localIdentName: '[name]_[local]_[hash:base64:4]'
-					}
+					test: /\.(s*)css$/,
+					use: ['style-loader','css-loader']
 				}
 			]
 		},
 		plugins: [
-			new webpack.DefinePlugin(envKeys)
+			htmlPlugin,
+			new webpack.DefinePlugin(envKeys),
+			new webpack.HotModuleReplacementPlugin()
 		],
 		resolve: {
 			extensions: ['.js', '.jsx']
 		},
 		devServer: {
+			publicPath:'http://localhost:9000',
+			contentBase: path.join(__dirname,'assets'),
+			open: false,
+			lazy: false,
+			compress: true,
 			historyApiFallback: true,
-			contentBase: './',
-			port: 4172
+			port: 9000
 		}
 	}
 };
